@@ -7,6 +7,8 @@
 #define FPS 30
 #define MAX_WIDTH 560 /* full allocated space for dungeon */
 #define MAX_HEIGHT 240
+#define CON_WIDTH 80
+#define CON_HEIGHT 24
 
 /* Define global variables */
 extern int PLAYER_X, PLAYER_Y;

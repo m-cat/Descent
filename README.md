@@ -20,4 +20,3 @@ Development began today. Curses was chosen as the library for console interactio
 
 ####Misc
 
-- Notify user when the console size is too small

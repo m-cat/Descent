@@ -1,7 +1,7 @@
-DEPS = *.c
+DEPS = src/*.c
 
 descent : $(DEPS)
-	gcc $(DEPS) -lncurses -g -o $@
+	gcc $(DEPS) -lncurses -g -o bin/$@
 
 clean :
-	rm -f -r *~ *.stackdump descent
+	rm -f -r */*~ */*.stackdump bin

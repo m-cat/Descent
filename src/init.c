@@ -46,6 +46,9 @@ int init_all() {
   init_pair(C_GREEN_BLACK, COLOR_GREEN, COLOR_BLACK);
   init_pair(C_BLUE_BLACK, COLOR_BLUE, COLOR_BLACK);
   init_pair(C_WHITE_BLACK, COLOR_WHITE, COLOR_BLACK);
+  init_pair(C_WHITE_RED, COLOR_WHITE, COLOR_RED);
+  init_pair(C_WHITE_BLUE, COLOR_WHITE, COLOR_BLUE);
+  init_pair(C_BLACK_WHITE, COLOR_BLACK, COLOR_WHITE);
 
   /* Initialize misc */
   signal(SIGWINCH, _handle_resize); /* Add signal handler for resize */

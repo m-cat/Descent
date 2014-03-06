@@ -27,16 +27,3 @@ void actor_move(actor *a, enum DIRECTION d) {
   }
   DUNGEON[a->y][a->x].resident = a;
 }
-
-enum COLOR_PAIR get_actor_color(actor *a) {
-  switch (a->type) {
-  case ACTOR_PLAYER:
-    return C_WHITE_BLACK;
-  case ACTOR_ENEMY:
-    return C_RED_BLACK;
-  case ACTOR_NPC:
-    return C_YELLOW_BLACK;
-  default:
-    return C_GREEN_BLACK;
-  }
-}

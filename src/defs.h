@@ -9,15 +9,13 @@
 #define MAX_HEIGHT 240
 #define CON_WIDTH 80
 #define CON_HEIGHT 24
-#define UI_WIDTH 24
+#define UI_WIDTH 25
+
+#define MAX_NAME_LEN UI_WIDTH-11
 
 /* Define global variables */
 extern int LEVEL;
 extern int CURRENT_WIDTH, CURRENT_HEIGHT;
-
-/* Define macros */
-#define cprint(y, x, c, args...) (attron(COLOR_PAIR(c)), mvprintw(y, x, args))
-#define cbprint(y, x, c, args...) (attron(A_BOLD), cprint(y, x, c, args), attroff(A_BOLD))
 
 /* Define enums */
 enum COLOR_PAIR {
@@ -28,7 +26,10 @@ enum COLOR_PAIR {
   C_BLUE_BLACK,
   C_MAGENTA_BLACK,
   C_CYAN_BLACK,
-  C_WHITE_BLACK
+  C_WHITE_BLACK,
+  C_WHITE_RED,
+  C_WHITE_BLUE,
+  C_BLACK_WHITE,
 };
 
 enum DIRECTION {
@@ -85,7 +86,7 @@ typedef struct ACTOR {
   int level, exp;
   int hp_max, hp_cur;
   /* Define a bunch more variables... */
-  enum OPT_TRAVEL opt_travel;
+  int opt_travel;
 } actor;
 
 typedef struct ITEM {

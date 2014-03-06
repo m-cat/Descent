@@ -5,6 +5,5 @@
 
 int can_move(actor *a, enum DIRECTION d);
 void actor_move(actor *a, enum DIRECTION d);
-enum COLOR_PAIR get_actor_color(actor *a);
 
 #endif

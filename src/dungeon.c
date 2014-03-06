@@ -55,7 +55,7 @@ void dungeon_gen(enum DUNGEON_TYPE type) {
   switch (type) {
   case DUNGEON_MAZE:
     dungeon_gen_maze(1, 1);
-    PLAYER_X = PLAYER_Y = 1;
+    /* should place player here */
     break;
   }
 }

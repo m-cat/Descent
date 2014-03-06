@@ -7,11 +7,7 @@
 
 int kbhit() {
   int ch = getch();
-
-  if (ch != ERR) {
-    return ch;
-  }
-  return 0;
+  return (ch != ERR) ? ch : 0;
 }
 
 int msleep(int ms) {

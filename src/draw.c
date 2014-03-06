@@ -1,5 +1,6 @@
 #include "defs.h"
 #include "util.h"
+#include "player.h"
 #include "draw.h"
 
 void draw_warnings() {
@@ -12,15 +13,27 @@ void draw_warnings() {
 }
 
 void draw_all() {
-  int i, j;
-  for (i = 0; i < min(LINES, CON_HEIGHT); i++)
-    for (j = 0; j < min(COLS, CON_WIDTH); j++) {
-      if (i == PLAYER_Y && j == PLAYER_X)
-	cprint(i, j, C_GREEN_BLACK, "@");
-      else if (DUNGEON[i][j].type == TILE_FLOOR)
-	cprint(i, j, C_WHITE_BLACK, " ");
-      else if (DUNGEON[i][j].type == TILE_WALL)
-	cprint(i, j, C_WHITE_BLACK, "#");
+  int i, j, drawi, drawj;
+  int scr_width = min(COLS, CON_WIDTH)-UI_WIDTH;
+  int scr_height = min(LINES, CON_HEIGHT);
+  dungeon_block *block;
+  actor *a;
+  for (i = player.y-scr_height/2+1; i < player.y+scr_height/2; i++)
+    for (j = player.x-scr_width/2+UI_WIDTH/2+1; j < player.x+scr_width/2; j++) {
+      drawi = i-player.y+scr_height/2-1, drawj = j-player.x+scr_width/2-1;
+      /* Check if out of bounds */
+      if (i < 0 || i >= CURRENT_HEIGHT || j < 0 || j >= CURRENT_WIDTH) {
+	cprint(drawi, drawj, C_WHITE_BLACK, " ");
+	continue;
+      }
+      block = &DUNGEON[i][j];
+      a = block->resident;
+      if (a != NULL)
+	cprint(drawi, drawj, get_actor_color(a), "%c", a->ch);
+      else if (block->type == TILE_FLOOR)
+	cprint(drawi, drawj, C_WHITE_BLACK, " ");
+      else if (block->type == TILE_WALL)
+	cbprint(drawi, drawj, C_WHITE_BLACK, "#");
     }
   draw_warnings();
 }

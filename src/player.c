@@ -2,7 +2,7 @@
 #include "actor.h"
 #include "player.h"
 
-actor player;
+ACTOR player;
 
 /* Tries to perform a player action corresponding to the pressed key.
    Returns 1 if an action was peformed. */

@@ -20,23 +20,7 @@ int is_alphanum(int c) {
 	  (c >= '0' && c <= '9'));
 }
 
-char* cinput(int y, int x, enum COLOR_PAIR c, int max_len) {
-  char *str = calloc(max_len, 1);
-  int cur_len = 0, key;
-
-  while ((key=getch()) != '\n' || cur_len == 0) {
-    if (is_alphanum(key) && cur_len < max_len-1)
-      str[cur_len++] = key;
-    else if ((key == KEY_BACKSPACE || key == KEY_DC) && cur_len > 0)
-      str[--cur_len] = 0;
-    cprintb(y, x, c, "%s_ ", str);
-    cprintb(y, x+max_len-1, c, " "); /* erase '_' if no more space */
-    msleep(1000/FPS);
-  }
-  return str;
-}
-
-enum COLOR_PAIR get_actor_color(actor *a) {
+enum COLOR_PAIR get_actor_color(ACTOR *a) {
   switch (a->type) {
   case ACTOR_PLAYER:
     return C_WHITE_BLACK;
@@ -60,8 +44,8 @@ void draw_warnings() {
 
 void draw_view(int scr_width, int scr_height) {
   int i, j, drawi, drawj;
-  dungeon_block *block;
-  actor *a;
+  DUNGEON_BLOCK *block;
+  ACTOR *a;
   for (i = player.y-scr_height/2; i <= player.y+scr_height/2; i++)
     for (j = player.x-scr_width/2; j <= player.x+scr_width/2; j++) {
       drawi = i-player.y+scr_height/2, drawj = j-player.x+scr_width/2;
@@ -85,21 +69,32 @@ void draw_view(int scr_width, int scr_height) {
 
 void draw_ui(int ui_x, int ui_y) {
   int i, j;
-  /* Draw separator */
-  for (i = 0; i < LINES; i++)
+  /* Draw separator and borders */
+  for (i = 0; i < CON_HEIGHT+1; i++)
     cprint(i, ui_x, C_BLACK_WHITE, " ");
+  if (LINES > CON_HEIGHT)
+    for (j = 0; j < CON_WIDTH+1; j++)
+      cprint(CON_HEIGHT, j, C_BLACK_WHITE, " ");
+  if (COLS > CON_WIDTH)
+    for (i = 0; i < CON_HEIGHT+1; i++)
+      cprint(i, CON_WIDTH, C_BLACK_WHITE, " ");
 
   /* Draw name */
-  cprintb(ui_y+1, ui_x+2, C_WHITE_BLACK, "~~~ %s ~~~", player.name);
+  for (j = ui_x+2; j <= CON_WIDTH-2; j++)
+    cprintb(ui_y+1, j, C_WHITE_BLACK, "~");
+  cprintb(ui_y+1, ui_x+5+(MAX_NAME_LEN-strlen(player.name))/2, C_WHITE_BLACK,
+	  " %s ", player.name);
 
   /* Draw level and exp */
-  cprintb(ui_y+3, ui_x+2, C_WHITE_BLACK, "Level: %d  Exp: %d", player.level, player.exp);
+  cprintb(ui_y+3, ui_x+2, C_WHITE_BLACK, "Level: %d", player.level);
+  cprintb(ui_y+3, CON_WIDTH-6-intlen(player.exp), C_WHITE_BLACK,
+	  "Exp: %d", player.exp);
 
   /* Draw hp and mp */
   cprintb(ui_y+5, ui_x+2, C_WHITE_BLACK, "HP: %d / %d", 12, 32);
-  cprint(ui_y+6, ui_x+2, C_RED_BLACK, "[================]");
+  cprint(ui_y+6, ui_x+3, C_RED_BLACK, "[===================]");
   cprintb(ui_y+7, ui_x+2, C_WHITE_BLACK, "MP: %d / %d", 5, 5);
-  cprint(ui_y+8, ui_x+2, C_BLUE_BLACK, "[================]");
+  cprint(ui_y+8, ui_x+3, C_BLUE_BLACK, "[===================]");
 
   /* Draw weapon name */
 }
@@ -118,6 +113,8 @@ enum MENU_SCREEN {
 };
 
 void draw_menu(enum MENU_SCREEN menu) {
+  char *str, *temp;
+  int cur_len, max_len, key, x;
   switch (menu) {
   case MENU_MAIN:
     cprintb(1, 1, C_WHITE_BLACK, "  New Game");
@@ -125,8 +122,29 @@ void draw_menu(enum MENU_SCREEN menu) {
     cprintb(MENU_CHOICE+1, 1, C_WHITE_BLACK, ">");
     break;
   case MENU_NAME:
-    cprintb(1, 1, C_WHITE_BLACK, "Enter your name: ");
-    player.name = cinput(1, 1+strlen("Enter your name: "), C_WHITE_BLACK, MAX_NAME_LEN);
+    cur_len = 0, max_len = MAX_NAME_LEN;
+    x = strlen("Enter your name: ") + 1;
+    str = calloc(max_len, 1);
+
+    while (!((key=getch()) == '\n' && cur_len != 0)) {
+      clear();
+      if ((is_alphanum(key) || key == '-') && cur_len < max_len-1)
+	str[cur_len++] = key;
+      else if ((key == KEY_BACKSPACE || key == KEY_DC) && cur_len > 0)
+	str[--cur_len] = 0;
+      else if (key == ' ') {
+	temp = name_gen();
+	cur_len = strlen(strcpy(str, temp));
+	free(temp);
+      }
+      cprintb(1, x, C_WHITE_BLACK, "%s_", str);
+      cprintb(1, x+max_len-1, C_WHITE_BLACK, " "); /* erase '_' if at end */
+      cprintb(1, 1, C_WHITE_BLACK, "Enter your name: ");
+      cprintb(3, 1, C_WHITE_BLACK, "Press space for a random name.");
+      handle_resize();
+      msleep(1000/FPS);
+    }
+    player.name = str;
     break;
   }
 }

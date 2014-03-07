@@ -1,7 +1,7 @@
 #include "defs.h"
 #include "actor.h"
 
-int can_move(actor *a, enum DIRECTION d) {
+int can_move(ACTOR *a, enum DIRECTION d) {
   switch (d) {
   case DIR_N:
     return (DUNGEON[a->y-1][a->x].type == TILE_FLOOR);
@@ -13,7 +13,7 @@ int can_move(actor *a, enum DIRECTION d) {
     return (DUNGEON[a->y][a->x-1].type == TILE_FLOOR);
   }
 }
-void actor_move(actor *a, enum DIRECTION d) {
+void actor_move(ACTOR *a, enum DIRECTION d) {
   DUNGEON[a->y][a->x].resident = NULL;
   switch (d) {
   case DIR_N:

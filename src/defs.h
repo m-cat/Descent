@@ -78,33 +78,33 @@ enum OPT_TRAVEL {
 };
 
 /* Define structs */
-typedef struct ACTOR {
+typedef struct {
   enum ACTOR_TYPE type;
-  char *name;
+  char *name; /* remember to free when removing the actor */
   char ch; /* display character */
   int x, y;
   int level, exp;
   int hp_max, hp_cur;
   /* Define a bunch more variables... */
   int opt_travel;
-} actor;
+} ACTOR;
 
-typedef struct ITEM {
+typedef struct {
   enum ITEM_TYPE type;
-} item;
+} ITEM;
 
-typedef struct ITEM_STACK {
-  item *held_item;
+typedef struct {
+  ITEM *held_item;
   struct ITEM_STACK *next;
-} item_stack;
+} ITEM_STACK;
 
-typedef struct DUNGEON_BLOCK {
+typedef struct {
   enum TILE_TYPE type;
-  actor *resident; /* actor currently residing in tile */
-  item_stack *items;
-} dungeon_block;
+  ACTOR *resident; /* actor currently residing in tile */
+  ITEM_STACK *items;
+} DUNGEON_BLOCK;
 
 /* Define global data structures */
-dungeon_block DUNGEON[MAX_HEIGHT][MAX_WIDTH];
+DUNGEON_BLOCK DUNGEON[MAX_HEIGHT][MAX_WIDTH];
 
 #endif /* DEFS_H */

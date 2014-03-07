@@ -4,9 +4,9 @@
 
 Descent is a work-in-progress [roguelike](http://en.wikipedia.org/wiki/Roguelike) game. It will differ from most convential roguelikes by foregoing archaic and dated gameplay and instead offering an intuitive and user-friendly experience.
 
-##Current State (3-6-2014)
+##Current State (3-7-2014)
 
-Began implementing the menu and UI. Implemented an input function which still has a bug associated with it. Restructured the structure of the code a little bit.
+Continued work on the UI. Fixed the name input and added an option for generating random names.
 
 ###To Do
 
@@ -17,7 +17,5 @@ Began implementing the menu and UI. Implemented an input function which still ha
 - Continue work on the menu and UI
 
 ####Misc
-
-- Fix a bug that occurs when the console is resized while inside cinput().
 
 - Begin thinking about monster movement order

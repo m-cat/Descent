@@ -3,7 +3,7 @@
 
 void dungeon_clear() {
   int i, j;
-  dungeon_block *block;
+  DUNGEON_BLOCK *block;
   for (i = 0; i < CURRENT_HEIGHT; i++)
     for (j = 0; j < CURRENT_WIDTH; j++) {
       block = &DUNGEON[i][j];

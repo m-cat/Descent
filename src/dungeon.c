@@ -6,14 +6,25 @@
 void dungeon_clear() {
   int i, j;
   DUNGEON_BLOCK *block;
+  ITEM_STACK *items;
+  ITEM_STACK *temp;
   for (i = 0; i < CURRENT_HEIGHT; i++)
     for (j = 0; j < CURRENT_WIDTH; j++) {
       block = &DUNGEON[i][j];
       block->type = TILE_WALL;
       block->resident = NULL;
       block->furn = NULL;
-      if (block->items != NULL)
-	free(block->items);
+      items = block->items;
+      /* Delete every node in a stash */
+      if (items != NULL) {
+	  while (items->next != NULL)
+	    items = items->next;
+	  while (items != NULL) {
+	    temp = items->prev;
+	    free(items);
+	    items = temp;
+	  }
+      }
       block->items = NULL;
     }
 }

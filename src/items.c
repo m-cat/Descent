@@ -49,5 +49,8 @@ void item_drop(int y, int x, ITEM *item) {
   ITEM_STACK *new_items = malloc(sizeof(ITEM_STACK));
   new_items->item = item;
   new_items->next = items;
+  if (items != NULL)
+    items->prev = new_items;
+  new_items->prev = NULL;
   DUNGEON[y][x].items = new_items;
 }

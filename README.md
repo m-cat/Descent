@@ -4,9 +4,9 @@
 
 Descent is a work-in-progress [roguelike](http://en.wikipedia.org/wiki/Roguelike) game. It will differ from most convential roguelikes by foregoing archaic and dated gameplay and instead offering an intuitive and user-friendly experience.
 
-##Current State (3-7-2014)
+##Current State (3-9-2014)
 
-Continued work on the UI. Fixed the name input and added an option for generating random names.
+Began implementing items. They can be placed in stashes on the ground and the top one viewed. Still to be implemented are picking items up and an inventory. Also added a water type tile and a structure for furniture (i.e. doors), but haven't tested them yet.
 
 ###To Do
 
@@ -19,5 +19,3 @@ Continued work on the UI. Fixed the name input and added an option for generatin
 - Continue work on the menu and UI
 
 ####Misc
-
-- Add status bar at the top, combat log at the bottom (make the console 80x35)

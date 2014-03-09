@@ -104,6 +104,7 @@ typedef struct ITEM_STACK ITEM_STACK;
 struct ITEM_STACK {
   ITEM *item;
   ITEM_STACK *next;
+  ITEM_STACK *prev;
 };
 
 typedef struct {

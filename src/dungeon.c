@@ -1,4 +1,6 @@
+#include <stdlib.h>
 #include "defs.h"
+#include "items.h"
 #include "dungeon.h"
 
 void dungeon_clear() {
@@ -9,6 +11,10 @@ void dungeon_clear() {
       block = &DUNGEON[i][j];
       block->type = TILE_WALL;
       block->resident = NULL;
+      block->furn = NULL;
+      if (block->items != NULL)
+	free(block->items);
+      block->items = NULL;
     }
 }
 
@@ -49,13 +55,46 @@ void dungeon_gen_maze(int x, int y) {
     }
   }
 }
+void dungeon_gen_cave() {
+  int i = 1, x=1, y=1;
+  while ((float)i/(CURRENT_WIDTH*CURRENT_HEIGHT) < .5) {
+    if (DUNGEON[y][x].type == TILE_WALL)
+      i++;
+    DUNGEON[y][x].type = TILE_FLOOR;
+    switch (rand_int(DIR_N, DIR_W)) {
+    case DIR_N:
+      y -= (y>1);
+      break;
+    case DIR_E:
+      x += (x < CURRENT_WIDTH-2);
+      break;
+    case DIR_S:
+      y += (y < CURRENT_HEIGHT-2);
+      break;
+    case DIR_W:
+      x -= (x>1);
+      break;
+    }
+  }
+  i = 10;
+  while (i --> 0) {
+    do {
+      x = rand_int(0, CURRENT_WIDTH-1);
+      y = rand_int(0, CURRENT_HEIGHT-1);
+    } while (DUNGEON[y][x].type != TILE_FLOOR);
+    item_place(y, x, "diamond");
+    }
+}
 
 void dungeon_gen(enum DUNGEON_TYPE type) {
   dungeon_clear();
   switch (type) {
   case DUNGEON_MAZE:
     dungeon_gen_maze(1, 1);
-    /* should place player here */
+    /* place_player() */
+    break;
+  case DUNGEON_CAVE:
+    dungeon_gen_cave();
     break;
   }
 }

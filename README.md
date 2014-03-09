@@ -14,8 +14,10 @@ Continued work on the UI. Fixed the name input and added an option for generatin
 
 - Add dungeon generation
 
+- Implement data structures, items, and inventory
+
 - Continue work on the menu and UI
 
 ####Misc
 
-- Begin thinking about monster movement order
+- Add status bar at the top, combat log at the bottom (make the console 80x35)

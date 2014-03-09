@@ -2,8 +2,12 @@
 #include <string.h>
 #include "defs.h"
 #include "util.h"
+#include "items.h"
 #include "player.h"
 #include "io.h"
+
+/* Define common color pairs for convenience */
+#define C_WHITE_BLACK (C(COLOR_WHITE, COLOR_BLACK))
 
 /* Define menu variables */
 int MENU_CHOICE = 0; /* persists when user returns to menu */
@@ -20,25 +24,38 @@ int is_alphanum(int c) {
 	  (c >= '0' && c <= '9'));
 }
 
-enum COLOR_PAIR get_actor_color(ACTOR *a) {
+int get_actor_color(ACTOR *a) {
   switch (a->type) {
   case ACTOR_PLAYER:
-    return C_WHITE_BLACK;
+    return COLOR_WHITE;
   case ACTOR_ENEMY:
-    return C_RED_BLACK;
+    return COLOR_RED;
   case ACTOR_NPC:
-    return C_YELLOW_BLACK;
-  default:
-    return C_GREEN_BLACK;
+    return COLOR_CYAN;
   }
 }
 
 void draw_warnings() {
   if (LINES < CON_HEIGHT || COLS < CON_WIDTH) {
-    cprint(0, 0, C_RED_BLACK, "WARNING:");
-    cprint(1, 0, C_RED_BLACK, "RESIZE  ");
-    cprint(2, 0, C_RED_BLACK, "CONSOLE ");
-    cprint(3, 0, C_RED_BLACK, "TO 80x24");
+    cprint(0, 0, C(COLOR_RED, COLOR_BLACK), "WARNING:");
+    cprint(1, 0, C(COLOR_RED, COLOR_BLACK), "RESIZE  ");
+    cprint(2, 0, C(COLOR_RED, COLOR_BLACK), "CONSOLE ");
+    cprint(3, 0, C(COLOR_RED, COLOR_BLACK), "TO 80x24");
+  }
+}
+
+void draw_notify(int scr_width) {
+  int j;
+  ITEM_STACK *items;
+  ITEM *item;
+  for (j = 0; j < scr_width; j++)
+    cprintb(0, j, C(COLOR_BLACK, COLOR_WHITE), " ");
+  items = DUNGEON[player.y][player.x].items;
+  if (items != NULL && items->item != NULL) {
+    item = items->item;
+    cprintb(0, 1, C_WHITE_BLACK, " You see here %s %s. %s",
+	    a_or_an(item->name), item->name,
+	    (items->next != NULL) ? "(more) " : "");
   }
 }
 
@@ -46,6 +63,10 @@ void draw_view(int scr_width, int scr_height) {
   int i, j, drawi, drawj;
   DUNGEON_BLOCK *block;
   ACTOR *a;
+  FURN *furn;
+  ITEM *item;
+  enum TILE_TYPE type;
+  int c2; // background color
   for (i = player.y-scr_height/2; i <= player.y+scr_height/2; i++)
     for (j = player.x-scr_width/2; j <= player.x+scr_width/2; j++) {
       drawi = i-player.y+scr_height/2, drawj = j-player.x+scr_width/2;
@@ -55,15 +76,31 @@ void draw_view(int scr_width, int scr_height) {
 	continue;
       }
       /* Draw the contents of the block
-	 Prioritizes actor > item > tile */
+	 Prioritizes actor > furn > item > tile */
       block = &DUNGEON[i][j];
       a = block->resident;
+      furn = block->furn;
+      type = block->type;
+      item = item_get(i, j);
+      switch (type) {
+      case TILE_FLOOR: c2 = COLOR_BLACK; break;
+      case TILE_WATER: c2 = COLOR_BLUE; break;
+      case TILE_LAVA: c2 = COLOR_RED; break;
+      }
       if (a != NULL)
-	cprintb(drawi, drawj, get_actor_color(a), "%c", a->ch);
+	cprintb(drawi, drawj, C(get_actor_color(a), c2), "%c", a->ch);
+      else if (furn != NULL)
+	cprintb(drawi, drawj, C(COLOR_YELLOW, c2), "%c", furn->ch);
+      else if (item != NULL)
+	cprintb(drawi, drawj,
+		C((c2==COLOR_BLUE) ? COLOR_BLACK : COLOR_BLUE, c2),
+		"%c", item->ch);
       else if (block->type == TILE_FLOOR)
-	cprint(drawi, drawj, C_WHITE_BLACK, " ");
+	cprint(drawi, drawj, C(COLOR_WHITE, COLOR_BLACK), ".");
       else if (block->type == TILE_WALL)
-	cprint(drawi, drawj, C_WHITE_BLACK, "#");
+	cprint(drawi, drawj, C(COLOR_WHITE, COLOR_BLACK), "#");
+      else if (block->type == TILE_WATER)
+	cprint(drawi, drawj, C(COLOR_BLUE, COLOR_BLACK), "~");
     }
 }
 
@@ -71,30 +108,30 @@ void draw_ui(int ui_x, int ui_y) {
   int i, j;
   /* Draw separator and borders */
   for (i = 0; i < CON_HEIGHT+1; i++)
-    cprint(i, ui_x, C_BLACK_WHITE, " ");
+    cprint(i, ui_x, C(COLOR_BLACK, COLOR_WHITE), " ");
   if (LINES > CON_HEIGHT)
     for (j = 0; j < CON_WIDTH+1; j++)
-      cprint(CON_HEIGHT, j, C_BLACK_WHITE, " ");
+      cprint(CON_HEIGHT, j, C(COLOR_BLACK, COLOR_WHITE), " ");
   if (COLS > CON_WIDTH)
     for (i = 0; i < CON_HEIGHT+1; i++)
-      cprint(i, CON_WIDTH, C_BLACK_WHITE, " ");
+      cprint(i, CON_WIDTH, C(COLOR_BLACK, COLOR_WHITE), " ");
 
   /* Draw name */
-  for (j = ui_x+2; j <= CON_WIDTH-2; j++)
-    cprintb(ui_y+1, j, C_WHITE_BLACK, "~");
-  cprintb(ui_y+1, ui_x+5+(MAX_NAME_LEN-strlen(player.name))/2, C_WHITE_BLACK,
-	  " %s ", player.name);
+  for (j = ui_x+2; j <= min(COLS, CON_WIDTH)-2; j++)
+    cprintb(ui_y+1, j, C(COLOR_CYAN, COLOR_BLACK), "~");
+  cprintb(ui_y+1, ui_x+5+(MAX_NAME_LEN-strlen(player.name))/2,
+	  C_WHITE_BLACK, " %s ", player.name);
 
   /* Draw level and exp */
   cprintb(ui_y+3, ui_x+2, C_WHITE_BLACK, "Level: %d", player.level);
-  cprintb(ui_y+3, CON_WIDTH-6-intlen(player.exp), C_WHITE_BLACK,
+  cprintb(ui_y+3, min(COLS, CON_WIDTH)-6-intlen(player.exp), C_WHITE_BLACK,
 	  "Exp: %d", player.exp);
 
   /* Draw hp and mp */
   cprintb(ui_y+5, ui_x+2, C_WHITE_BLACK, "HP: %d / %d", 12, 32);
-  cprint(ui_y+6, ui_x+3, C_RED_BLACK, "[===================]");
+  cprintb(ui_y+6, ui_x+3, C(COLOR_RED, COLOR_BLACK), "[==================]");
   cprintb(ui_y+7, ui_x+2, C_WHITE_BLACK, "MP: %d / %d", 5, 5);
-  cprint(ui_y+8, ui_x+3, C_BLUE_BLACK, "[===================]");
+  cprintb(ui_y+8, ui_x+3, C(COLOR_BLUE, COLOR_BLACK), "[==================]");
 
   /* Draw weapon name */
 }
@@ -104,6 +141,7 @@ void draw_game() {
   int scr_height = min(LINES, CON_HEIGHT);
   draw_view(scr_width, scr_height);
   draw_ui(scr_width, 0);
+  draw_notify(scr_width);
   draw_warnings();
 }
 
@@ -153,7 +191,7 @@ void handle_menu() {
   int key;
 
   /* Initial menu screen */
-  while ((key=getch()) != '\n') {
+  while ((key=getch()) != '\n' && key != ' ') {
     switch (key) {
     case KEY_UP:
       MENU_CHOICE = (MENU_CHOICE == 0) ? MENU_NUM_CHOICES-1 : MENU_CHOICE-1;

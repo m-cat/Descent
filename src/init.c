@@ -25,6 +25,8 @@ void endCurses() {
 }
 
 int init_all() {
+  int i, j;
+
   /* Initialize ncurses */
   initscr();
   keypad(stdscr, TRUE);  /* Allow reading arrow keys */
@@ -42,13 +44,9 @@ int init_all() {
     exit(1);
   }
   start_color();
-  init_pair(C_RED_BLACK, COLOR_RED, COLOR_BLACK);
-  init_pair(C_GREEN_BLACK, COLOR_GREEN, COLOR_BLACK);
-  init_pair(C_BLUE_BLACK, COLOR_BLUE, COLOR_BLACK);
-  init_pair(C_WHITE_BLACK, COLOR_WHITE, COLOR_BLACK);
-  init_pair(C_WHITE_RED, COLOR_WHITE, COLOR_RED);
-  init_pair(C_WHITE_BLUE, COLOR_WHITE, COLOR_BLUE);
-  init_pair(C_BLACK_WHITE, COLOR_BLACK, COLOR_WHITE);
+  for (i = 0; i < 8; i++)
+    for (j = 0; j < 8; j++)
+      init_pair(10*i + j, j, i);
 
   /* Initialize misc */
   signal(SIGWINCH, _handle_resize); /* Add signal handler for resize */

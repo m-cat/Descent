@@ -16,7 +16,7 @@ int main() {
   handle_menu();
 
   /* Generate dungeon */
-  dungeon_gen(DUNGEON_MAZE);
+  dungeon_gen(DUNGEON_CAVE);
   /* Initialize player */
   player.x = 1; /* temporary */
   player.y = 1;

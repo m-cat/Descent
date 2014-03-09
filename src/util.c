@@ -1,11 +1,25 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 #include <time.h>
 #include <ctype.h>
+#include <assert.h>
 #include <ncurses/ncurses.h>
 #include "defs.h"
 #include "util.h"
+
+ssize_t getline2(char *line, size_t *n, FILE *stream) {
+  int i, ret;
+  ret = getline(&line, n, stream);
+  /* Remove \n */
+  for (i = 0; line[i] != 0; i++)
+    if (line[i] == '\n') {
+      line[i] = 0;
+      break;
+    }
+  return ret;
+}
 
 int kbhit() {
   int ch = getch();

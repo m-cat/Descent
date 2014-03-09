@@ -6,6 +6,8 @@
 #define min(a,b) (((a) < (b)) ? (a) : (b))
 #endif
 
+ssize_t getline2(char *line, size_t *n, FILE *stream);
+
 int kbhit();
 int msleep(int ms);
 int rand_int(int a, int b);

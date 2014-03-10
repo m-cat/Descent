@@ -6,14 +6,9 @@
 #define MIN(a,b) (((a) < (b)) ? (a) : (b))
 #endif
 
-#ifndef SIGN
-#define SIGN(n) ((n) ? ((n)/abs(n)) : 0)
-#endif
+#define SIGN(n) ((n) ? ((n>0) ? 1 : -1) : 0)
+#define SWAP(a,b) ((a) ^= (b), (b) ^= (a), (a) ^= (b))
 
-ssize_t getline2(char *line, size_t *n, FILE *stream);
-
-int kbhit();
-int msleep(int ms);
 int rand_int(int a, int b);
 double rand_float(double a, double b);
 int intlen(int a);

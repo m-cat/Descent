@@ -1,56 +1,27 @@
-#include <ncurses/ncurses.h>
+#include <libtcod.h>
 #include <stdlib.h>
-#include <signal.h>
 #include "defs.h"
 #include "init.h"
-
-int handle_signal = 0;
-void _handle_resize(int sig) {
-  handle_signal = 1;
-}
-void handle_resize() {
-  if (handle_signal) {
-    endwin();
-    refresh();
-    clear();
-    resizeterm(LINES, COLS);
-    handle_signal = 0;
-  }
-}
-
-int curses_started = false;
-void endCurses() {
-  if (curses_started && !isendwin())
-    endwin();
-}
 
 int init_all() {
   int i, j;
 
-  /* Initialize ncurses */
-  initscr();
-  keypad(stdscr, TRUE);  /* Allow reading arrow keys */
-  curs_set(0);           /* Make the cursor invisible */
-  noecho();              /* Suppress echoing of user input */
-  raw();                 /* Disable line buffering */
-  nodelay(stdscr, TRUE); /* Disable delay on getch() */
-  atexit(endCurses);
-  curses_started = true;
+  /* Initialize TCOD console */
+  TCOD_console_init_root(CON_WIDTH, CON_HEIGHT, GAME_NAME, 0, TCOD_RENDERER_SDL);
 
-  /* Initialize colors */
-  if (!has_colors()) {
-    endwin();
-    fprintf(stderr, "Your terminal does not support colors.\n");
-    exit(1);
-  }
-  start_color();
-  for (i = 0; i < 8; i++)
-    for (j = 0; j < 8; j++)
-      init_pair(10*i + j, j, i);
+  /* Initialize data structures */
+  fov_map = TCOD_map_new(MAX_WIDTH, MAX_HEIGHT);
+
+  /* Parse config files */
+  TCOD_parser_t item_parser = TCOD_parser_new();
+  TCOD_parser_struct_t ITEM_struct = 
+    TCOD_parser_new_struct(item_parser, "ITEM");
+  TCOD_parser_run(item_parser, "data/items", NULL);
+  TCOD_parser_delete(item_parser);
 
   /* Initialize misc */
-  signal(SIGWINCH, _handle_resize); /* Add signal handler for resize */
-  srand(time(NULL));     /* Initialize seed to rand() */
+  TCOD_sys_set_fps(FPS);
+  TCOD_console_set_background_flag(NULL, TCOD_BKGND_SET);
 
   return 0;
 }

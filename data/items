@@ -1,3 +1,4 @@
-diamond
-3
-`
+ITEM "diamond" {
+	int type=3
+	char ch=','
+}

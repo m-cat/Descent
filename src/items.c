@@ -5,13 +5,12 @@
 #include "items.h"
 
 void item_init(ITEM *item, char *name) {
-  FILE *fp;
+  /*  FILE *fp;
   size_t len = 40;
   char *line = malloc(len + 1);
 
   fp = fopen("data/items", "r");
   if (fp == NULL) {
-    endwin();
     fclose(fp);
     fprintf(stderr, "Could not find data/items file.\n");
     exit(1);
@@ -30,11 +29,10 @@ void item_init(ITEM *item, char *name) {
     }
   }
 
-  /* Item name not found */
-  endwin();
   fclose(fp);
   fprintf(stderr, "Error reading data/items file.\n");
-  exit(1);
+  exit(1);*/
+  ;
 }
 
 ITEM* item_get(int y, int x) {

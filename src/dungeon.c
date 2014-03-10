@@ -3,23 +3,33 @@
 #include "items.h"
 #include "dungeon.h"
 
-#define SET_WALL(y, x)  (DUNGEON[y][x].type = TILE_WALL,		\
-			 CLR_BIT(DUNGEON[y][x].opt_tile, TILE_TRANSPARENT), \
-			 CLR_BIT(DUNGEON[y][x].opt_tile, TILE_PASSABLE))
-#define SET_FLOOR(y, x) (DUNGEON[y][x].type = TILE_FLOOR, \
-			 SET_BIT(DUNGEON[y][x].opt_tile, TILE_TRANSPARENT), \
-			 SET_BIT(DUNGEON[y][x].opt_tile, TILE_PASSABLE))
+void SET_WALL(y, x) {
+  DUNGEON[y][x].type = TILE_WALL;
+  SET_TRANSPARENT(y, x, 0);
+  SET_PASSABLE(y, x, 0);
+}
+void SET_FLOOR(y, x) {
+  DUNGEON[y][x].type = TILE_FLOOR;
+  SET_TRANSPARENT(y, x, 1);
+  SET_PASSABLE(y, x, 1);
+}
+void CLR_OPTS(y, x) {
+  DUNGEON[y][x].PASSABLE = 0;
+  DUNGEON[y][x].TRANSPARENT = 0;
+  DUNGEON[y][x].VISIBLE = 0;
+  DUNGEON[y][x].EXPLORED = 0;
+}
 
 void dungeon_clear() {
   int i, j;
   DUNGEON_BLOCK *block;
   ITEM_STACK *items;
   ITEM_STACK *temp;
-  for (i = 0; i < CURRENT_HEIGHT; i++)
+  for (i = 0; i < CURRENT_HEIGHT; i++) {
     for (j = 0; j < CURRENT_WIDTH; j++) {
       SET_WALL(i, j);
+      CLR_OPTS(i, j);
       block = &DUNGEON[i][j];
-      block->opt_tile = 0;
       block->resident = NULL;
       block->furn = NULL;
       items = block->items;
@@ -28,10 +38,20 @@ void dungeon_clear() {
 	temp = items->next;
 	free(items);
 	items = temp;
-
       }
       block->items = NULL;
     }
+  }
+  TCOD_map_clear(fov_map, 0, 0);
+}
+
+void dungeon_set_fov() {
+  int i, j;
+  for (i = 0; i < CURRENT_HEIGHT; i++)
+    for (j = 0; j < CURRENT_WIDTH; j++)
+      TCOD_map_set_properties(fov_map, j, i,
+			      CHK_TRANSPARENT(i, j),
+			      CHK_PASSABLE(i, j));
 }
 
 enum DIRECTION random_valid_path(int x, int y) {
@@ -71,9 +91,16 @@ void dungeon_gen_maze(int x, int y) {
     }
   }
 }
-void dungeon_gen_cave() {
+void dungeon_gen_cave(int goal) {
   int i = 1, x=1, y=1;
-  while ((float)i/(CURRENT_WIDTH*CURRENT_HEIGHT) < .5) {
+  // set x, y to be in the middle of allocated dungeon
+  // set CURRENT_HEIGHT, CURRENT_WIDTH to be 1
+  // set DUNGEON_X, DUNGEON_Y to be x, y
+  // update these values as you add more open squares
+  // when you hit an edge, shift over the whole dungeon by 128
+  // and update all the variables accordingly
+  // have a macro to copy dungeon blocks when you do the shift
+  while (i < goal) {
     if (DUNGEON[y][x].type == TILE_WALL)
       i++;
     SET_FLOOR(y, x);
@@ -92,14 +119,19 @@ void dungeon_gen_cave() {
       break;
     }
   }
-  i = 10;
+}
+
+void dungeon_place_items() {
+  /* Place items */
+  /*  i = 10;
   while (i --> 0) {
     do {
       x = rand_int(0, CURRENT_WIDTH-1);
       y = rand_int(0, CURRENT_HEIGHT-1);
     } while (DUNGEON[y][x].type != TILE_FLOOR);
     item_place(y, x, "diamond");
-    }
+    }*/
+  ;
 }
 
 void dungeon_gen(enum DUNGEON_TYPE type) {
@@ -110,7 +142,9 @@ void dungeon_gen(enum DUNGEON_TYPE type) {
     /* place_player() */
     break;
   case DUNGEON_CAVE:
-    dungeon_gen_cave();
+    dungeon_gen_cave(1000);
     break;
   }
+  //dungeon_place_items();
+  dungeon_set_fov();
 }

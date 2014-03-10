@@ -1,31 +1,35 @@
 #ifndef DEFS_H
 #define DEFS_H
 
-#include <ncurses/ncurses.h>
+#include <libtcod.h>
 
 /* Define global constants */
-#define FPS 30
+extern const char *GAME_NAME;
+
+#define FPS 60
 #define MAX_WIDTH 560 /* full allocated space for dungeon */
 #define MAX_HEIGHT 240
 #define CON_WIDTH 80
-#define CON_HEIGHT 24
-#define UI_WIDTH 25
+#define CON_HEIGHT 50
+#define UI_WIDTH 31
 
-#define MAX_NAME_LEN UI_WIDTH-11
+#define MAX_NAME_LEN UI_WIDTH-6
 
-#define FOV_RADIUS 11
+#define FOV_RADIUS 16
 
 /* Define global variables */
 extern int LEVEL;
 extern int CURRENT_WIDTH, CURRENT_HEIGHT;
 
 /* Define macros */
-#define C(c1, c2) ((10*c2) + (c1))
-#define Cr(c1, c2, r) ((r) ? ((10*c1) + (c2)) : ((10*c2) + (c1)))
-#define SET_BIT(n, b) (n |= 1 << (b))
-#define CLR_BIT(n, b) (n &= ~(1 << (b)))
-#define TGL_BIT(n, b) (n ^= 1 << (b))
-#define CHK_BIT(n, b) (n & (1 << (b)))
+#define SET_EXPLORED(y, x, n) (DUNGEON[(y)][(x)].EXPLORED = (n))
+#define SET_VISIBLE(y, x, n) (DUNGEON[(y)][(x)].VISIBLE = (n))
+#define SET_TRANSPARENT(y, x, n) (DUNGEON[(y)][(x)].TRANSPARENT = (n))
+#define SET_PASSABLE(y, x, n) (DUNGEON[(y)][(x)].PASSABLE = (n))
+#define CHK_EXPLORED(y, x) (DUNGEON[(y)][(x)].EXPLORED)
+#define CHK_VISIBLE(y, x) (DUNGEON[(y)][(x)].VISIBLE)
+#define CHK_TRANSPARENT(y, x) (DUNGEON[(y)][(x)].TRANSPARENT)
+#define CHK_PASSABLE(y, x) (DUNGEON[(y)][(x)].PASSABLE)
 
 /* Define enums */
 enum DIRECTION {
@@ -73,13 +77,6 @@ enum ITEM_TYPE {
 enum FURN_TYPE {
   FURN_DOOR,
   FURN_BRIDGE,
-};
-
-enum OPT_TILE {
-  TILE_EXPLORED,
-  TILE_VISIBLE,
-  TILE_TRANSPARENT,
-  TILE_PASSABLE,
 };
 
 enum OPT_TRAVEL {
@@ -136,10 +133,15 @@ typedef struct {
   ACTOR *resident; /* actor currently residing in tile */
   ITEM_STACK *items;
   FURN *furn;
-  int opt_tile;
+  char EXPLORED,
+    VISIBLE,
+    TRANSPARENT,
+    PASSABLE;
 } DUNGEON_BLOCK;
 
 /* Define global data structures */
 DUNGEON_BLOCK DUNGEON[MAX_HEIGHT][MAX_WIDTH];
+TCOD_map_t fov_map;
+TCOD_parser_t file_parser;
 
 #endif /* DEFS_H */

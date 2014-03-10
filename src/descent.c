@@ -1,4 +1,6 @@
-#include <ncurses/ncurses.h>
+#include <stdlib.h>
+#include <assert.h>
+#include <libtcod.h>
 #include "defs.h"
 #include "util.h"
 #include "dungeon.h"
@@ -8,13 +10,15 @@
 #include "init.h"
 
 int main() {
-  int i, j, key, next_turn;
+  int i, j, next_turn;
+  TCOD_key_t key;
 
   /* Initialize game */
   init_all(); /* Initialize console and colors */
 
   /* Main menu */
   handle_menu();
+  assert (strlen(player.name) > 0);
 
   /* Generate dungeon */
   dungeon_gen(DUNGEON_CAVE);
@@ -24,19 +28,21 @@ int main() {
   player.ch = '@';
   DUNGEON[1][1].resident = &player;
 
+  calc_fov();
+  draw_game();
+
   /* MAIN GAME LOOP */
-  while ((key=getch()) != 'q') {
-    next_turn = handle_input(key);
-    calc_fov();
-    if (next_turn) /* if player used up a turn */
-      ;//advance_turn();
-    handle_resize();
+  do {
+    TCOD_sys_wait_for_event(TCOD_EVENT_KEY_PRESS,&key,NULL,1);
+    if (!TCOD_console_is_active())
+      continue;
+    next_turn = handle_input(key.vk);
+    if (next_turn) { /* if player used up a turn */
+      //advance_turn();
+      calc_fov();
+    }
     draw_game();
-    msleep(1000/FPS); /* naive fps implementation */
-  }
+  } while (key.c != 'q');
 
-  /* Cleanup & exit */
-  endwin();
-
-  return 0;
+  exit(1);
 }

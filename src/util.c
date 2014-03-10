@@ -1,47 +1,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
 #include <time.h>
 #include <ctype.h>
-#include <assert.h>
-#include <ncurses/ncurses.h>
+#include <libtcod.h>
 #include "defs.h"
 #include "util.h"
 
-ssize_t getline2(char *line, size_t *n, FILE *stream) {
-  int i, ret;
-  ret = getline(&line, n, stream);
-  /* Remove \n */
-  for (i = 0; line[i] != 0; i++)
-    if (line[i] == '\n') {
-      line[i] = 0;
-      break;
-    }
-  return ret;
-}
-
-int kbhit() {
-  int ch = getch();
-  return (ch != ERR) ? ch : 0;
-}
-
-int msleep(int ms) {
-  struct timespec t1, t2;
-  t1.tv_sec = 0;
-  t1.tv_nsec = ms*1000000;
-  nanosleep(&t1, &t2);
-
-  return 0;
-}
-
 /* Returns random integer in [a, b] */
 int rand_int(int a, int b) {
-  return rand() % (b - a + 1) + a;
+  return TCOD_random_get_int(NULL, a, b);
 }
 
 double rand_float(double a, double b) {
-  return (double)rand()/RAND_MAX * (b - a) + a;
+  return TCOD_random_get_double(NULL, a, b);
 }
 
 int intlen(int a) {
@@ -75,7 +47,7 @@ char* name_gen() {
   const char *tconsonants = "strthrchr";
   const char *vowels = "aeiou";
   const char *dvowels = "ioiaai";
-  char *word = malloc(20);
+  char *word = calloc(MAX_NAME_LEN+1,1);
   int c, m;
   int cons_i = strlen(consonants),
     st_dcons_i = strlen(start_dconsonants)/2,
@@ -111,7 +83,7 @@ char* name_gen() {
 
   /* Alternate between choosing vowel and consonant sequences */
   m = rand_int(2,5);
-  while (m --> 0) { /* using the "goes to" operator --> */
+  while (m --> 0 && strlen(word) < MAX_NAME_LEN-3) { /* using the "goes to" operator --> */
     if (vowel = !vowel) {
       c = rand_int(0, vow_i + dvow_i - 1);
       if (c < vow_i)

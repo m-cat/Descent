@@ -3,6 +3,13 @@
 #include "items.h"
 #include "dungeon.h"
 
+#define SET_WALL(y, x)  (DUNGEON[y][x].type = TILE_WALL,		\
+			 CLR_BIT(DUNGEON[y][x].opt_tile, TILE_TRANSPARENT), \
+			 CLR_BIT(DUNGEON[y][x].opt_tile, TILE_PASSABLE))
+#define SET_FLOOR(y, x) (DUNGEON[y][x].type = TILE_FLOOR, \
+			 SET_BIT(DUNGEON[y][x].opt_tile, TILE_TRANSPARENT), \
+			 SET_BIT(DUNGEON[y][x].opt_tile, TILE_PASSABLE))
+
 void dungeon_clear() {
   int i, j;
   DUNGEON_BLOCK *block;
@@ -10,20 +17,18 @@ void dungeon_clear() {
   ITEM_STACK *temp;
   for (i = 0; i < CURRENT_HEIGHT; i++)
     for (j = 0; j < CURRENT_WIDTH; j++) {
+      SET_WALL(i, j);
       block = &DUNGEON[i][j];
-      block->type = TILE_WALL;
+      block->opt_tile = 0;
       block->resident = NULL;
       block->furn = NULL;
       items = block->items;
       /* Delete every node in a stash */
-      if (items != NULL) {
-	  while (items->next != NULL)
-	    items = items->next;
-	  while (items != NULL) {
-	    temp = items->prev;
-	    free(items);
-	    items = temp;
-	  }
+      while (items != NULL) {
+	temp = items->next;
+	free(items);
+	items = temp;
+
       }
       block->items = NULL;
     }
@@ -44,7 +49,7 @@ enum DIRECTION random_valid_path(int x, int y) {
 }
 void dungeon_gen_maze(int x, int y) {
   enum DIRECTION d;
-  DUNGEON[y][x].type = TILE_FLOOR;
+  SET_FLOOR(y, x);
   while ((d = random_valid_path(x, y)) != DIR_NONE) {
     switch (d) {
     case DIR_N:
@@ -71,7 +76,7 @@ void dungeon_gen_cave() {
   while ((float)i/(CURRENT_WIDTH*CURRENT_HEIGHT) < .5) {
     if (DUNGEON[y][x].type == TILE_WALL)
       i++;
-    DUNGEON[y][x].type = TILE_FLOOR;
+    SET_FLOOR(y, x);
     switch (rand_int(DIR_N, DIR_W)) {
     case DIR_N:
       y -= (y>1);

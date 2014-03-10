@@ -13,6 +13,8 @@
 
 #define MAX_NAME_LEN UI_WIDTH-11
 
+#define FOV_RADIUS 11
+
 /* Define global variables */
 extern int LEVEL;
 extern int CURRENT_WIDTH, CURRENT_HEIGHT;
@@ -20,6 +22,10 @@ extern int CURRENT_WIDTH, CURRENT_HEIGHT;
 /* Define macros */
 #define C(c1, c2) ((10*c2) + (c1))
 #define Cr(c1, c2, r) ((r) ? ((10*c1) + (c2)) : ((10*c2) + (c1)))
+#define SET_BIT(n, b) (n |= 1 << (b))
+#define CLR_BIT(n, b) (n &= ~(1 << (b)))
+#define TGL_BIT(n, b) (n ^= 1 << (b))
+#define CHK_BIT(n, b) (n & (1 << (b)))
 
 /* Define enums */
 enum DIRECTION {
@@ -47,12 +53,14 @@ enum TILE_TYPE {
   TILE_SHAFT,
   TILE_WATER,
   TILE_LAVA,
+  TILE_STAIRS_UP,
+  TILE_STAIRS_DOWN,
 };
 
 enum ACTOR_TYPE {
   ACTOR_PLAYER,
   ACTOR_ENEMY,
-  ACTOR_NPC
+  ACTOR_NPC,
 };
 
 enum ITEM_TYPE {
@@ -67,17 +75,24 @@ enum FURN_TYPE {
   FURN_BRIDGE,
 };
 
+enum OPT_TILE {
+  TILE_EXPLORED,
+  TILE_VISIBLE,
+  TILE_TRANSPARENT,
+  TILE_PASSABLE,
+};
+
 enum OPT_TRAVEL {
-  CAN_MOVE   = 0x01,
-  CAN_WALK   = 0x02,
-  CAN_SWIM   = 0x04,
-  CAN_FLY    = 0x08,
-  CAN_BURROW = 0x10,
+  CAN_MOVE,
+  CAN_WALK,
+  CAN_SWIM,
+  CAN_FLY,
+  CAN_BURROW,
 };
 
 enum OPT_FURN {
-  FURN_PASSABLE  = 0x01,
-  FURN_FLAMMABLE = 0x02,
+  FURN_PASSABLE,
+  FURN_FLAMMABLE,
 };
 
 /* Define structs */
@@ -116,9 +131,12 @@ typedef struct {
 
 typedef struct {
   enum TILE_TYPE type;
+  char *name;
+  char ch;
   ACTOR *resident; /* actor currently residing in tile */
   ITEM_STACK *items;
   FURN *furn;
+  int opt_tile;
 } DUNGEON_BLOCK;
 
 /* Define global data structures */

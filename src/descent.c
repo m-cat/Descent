@@ -3,6 +3,7 @@
 #include "util.h"
 #include "dungeon.h"
 #include "player.h"
+#include "algorithms.h"
 #include "io.h"
 #include "init.h"
 
@@ -26,6 +27,7 @@ int main() {
   /* MAIN GAME LOOP */
   while ((key=getch()) != 'q') {
     next_turn = handle_input(key);
+    calc_fov();
     if (next_turn) /* if player used up a turn */
       ;//advance_turn();
     handle_resize();

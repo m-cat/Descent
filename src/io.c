@@ -75,9 +75,22 @@ void draw_view(int scr_width, int scr_height) {
 	cprint(drawi, drawj, C_WHITE_BLACK, " ");
 	continue;
       }
+      block = &DUNGEON[i][j];
+      /* Check if not explored */
+      if (!CHK_BIT(block->opt_tile, TILE_EXPLORED)) {
+	cprint(drawi, drawj, C_WHITE_BLACK, " ");
+	continue;
+      }
+      /* Check if not visible */
+      if (!CHK_BIT(block->opt_tile, TILE_VISIBLE)) {
+	if (block->type == TILE_WALL)
+	  cprint(drawi, drawj, C_WHITE_BLACK, "#");
+	else
+	  cprint(drawi, drawj, C_WHITE_BLACK, " ");
+	continue;
+      }
       /* Draw the contents of the block
 	 Prioritizes actor > furn > item > tile */
-      block = &DUNGEON[i][j];
       a = block->resident;
       furn = block->furn;
       type = block->type;
@@ -98,7 +111,7 @@ void draw_view(int scr_width, int scr_height) {
       else if (block->type == TILE_FLOOR)
 	cprint(drawi, drawj, C(COLOR_WHITE, COLOR_BLACK), ".");
       else if (block->type == TILE_WALL)
-	cprint(drawi, drawj, C(COLOR_WHITE, COLOR_BLACK), "#");
+	cprint(drawi, drawj, C(COLOR_BLACK, COLOR_WHITE), "#");
       else if (block->type == TILE_WATER)
 	cprint(drawi, drawj, C(COLOR_BLUE, COLOR_BLACK), "~");
     }
@@ -117,14 +130,14 @@ void draw_ui(int ui_x, int ui_y) {
       cprint(i, CON_WIDTH, C(COLOR_BLACK, COLOR_WHITE), " ");
 
   /* Draw name */
-  for (j = ui_x+2; j <= min(COLS, CON_WIDTH)-2; j++)
+  for (j = ui_x+2; j <= MIN(COLS, CON_WIDTH)-2; j++)
     cprintb(ui_y+1, j, C(COLOR_CYAN, COLOR_BLACK), "~");
   cprintb(ui_y+1, ui_x+5+(MAX_NAME_LEN-strlen(player.name))/2,
 	  C_WHITE_BLACK, " %s ", player.name);
 
   /* Draw level and exp */
   cprintb(ui_y+3, ui_x+2, C_WHITE_BLACK, "Level: %d", player.level);
-  cprintb(ui_y+3, min(COLS, CON_WIDTH)-6-intlen(player.exp), C_WHITE_BLACK,
+  cprintb(ui_y+3, MIN(COLS, CON_WIDTH)-6-intlen(player.exp), C_WHITE_BLACK,
 	  "Exp: %d", player.exp);
 
   /* Draw hp and mp */
@@ -137,8 +150,8 @@ void draw_ui(int ui_x, int ui_y) {
 }
 
 void draw_game() {
-  int scr_width = min(COLS, CON_WIDTH)-UI_WIDTH;
-  int scr_height = min(LINES, CON_HEIGHT);
+  int scr_width = MIN(COLS, CON_WIDTH)-UI_WIDTH;
+  int scr_height = MIN(LINES, CON_HEIGHT);
   draw_view(scr_width, scr_height);
   draw_ui(scr_width, 0);
   draw_notify(scr_width);

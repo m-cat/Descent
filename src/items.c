@@ -12,6 +12,7 @@ void item_init(ITEM *item, char *name) {
   fp = fopen("data/items", "r");
   if (fp == NULL) {
     endwin();
+    fclose(fp);
     fprintf(stderr, "Could not find data/items file.\n");
     exit(1);
   }
@@ -23,12 +24,15 @@ void item_init(ITEM *item, char *name) {
       item->type = atoi(line);
       getline2(line, &len, fp);
       item->ch = line[0];
+
+      fclose(fp);
       return;
     }
   }
 
   /* Item name not found */
   endwin();
+  fclose(fp);
   fprintf(stderr, "Error reading data/items file.\n");
   exit(1);
 }

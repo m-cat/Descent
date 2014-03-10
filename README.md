@@ -6,7 +6,7 @@ Descent is a work-in-progress [roguelike](http://en.wikipedia.org/wiki/Roguelike
 
 ##Current State (3-9-2014)
 
-Began implementing items. They can be placed in stashes on the ground and the top one viewed. Still to be implemented are picking items up and an inventory. Also added a water type tile and a structure for furniture (i.e. doors), but haven't tested them yet.
+Began implementing items. They can be placed in stashes on the ground and the top one viewed. Still to be implemented are picking items up and an inventory. Also added a water type tile and a structure for furniture (i.e. doors), but haven't tested them yet. Added a FOV algorithm.
 
 ###To Do
 

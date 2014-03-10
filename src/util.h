@@ -1,9 +1,13 @@
 #ifndef UTIL_H
 #define UTIL_H
 
-#ifndef max
-#define max(a,b) (((a) > (b)) ? (a) : (b))
-#define min(a,b) (((a) < (b)) ? (a) : (b))
+#ifndef MAX
+#define MAX(a,b) (((a) > (b)) ? (a) : (b))
+#define MIN(a,b) (((a) < (b)) ? (a) : (b))
+#endif
+
+#ifndef SIGN
+#define SIGN(n) ((n) ? ((n)/abs(n)) : 0)
 #endif
 
 ssize_t getline2(char *line, size_t *n, FILE *stream);

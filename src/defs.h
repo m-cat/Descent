@@ -16,22 +16,38 @@ extern const char *GAME_NAME;
 #define MAX_NAME_LEN UI_WIDTH-6
 
 #define FOV_RADIUS 16
+#define COL_ACTIVE TCOD_brass
+#define COL_INACTIVE TCOD_dark_sepia
 
 /* Define global variables */
 extern int LEVEL;
 extern int CURRENT_WIDTH, CURRENT_HEIGHT;
+extern int DUNGEON_X, DUNGEON_Y;
+extern int INPUT_MODE;
+extern int CAMERA_X, CAMERA_Y;
+extern int LOOK_X, LOOK_Y;
+extern int TURN_COUNT;
 
 /* Define macros */
+#define IN_BOUNDS(y, x) ((y) >= 0 && (x) >= 0 &&		\
+			 (y) < MAX_HEIGHT && (x) < MAX_WIDTH)
 #define SET_EXPLORED(y, x, n) (DUNGEON[(y)][(x)].EXPLORED = (n))
 #define SET_VISIBLE(y, x, n) (DUNGEON[(y)][(x)].VISIBLE = (n))
 #define SET_TRANSPARENT(y, x, n) (DUNGEON[(y)][(x)].TRANSPARENT = (n))
 #define SET_PASSABLE(y, x, n) (DUNGEON[(y)][(x)].PASSABLE = (n))
-#define CHK_EXPLORED(y, x) (DUNGEON[(y)][(x)].EXPLORED)
-#define CHK_VISIBLE(y, x) (DUNGEON[(y)][(x)].VISIBLE)
-#define CHK_TRANSPARENT(y, x) (DUNGEON[(y)][(x)].TRANSPARENT)
-#define CHK_PASSABLE(y, x) (DUNGEON[(y)][(x)].PASSABLE)
+#define CHK_EXPLORED(y, x) (IN_BOUNDS((y),(x)) && DUNGEON[(y)][(x)].EXPLORED)
+#define CHK_VISIBLE(y, x) (IN_BOUNDS((y),(x)) && DUNGEON[(y)][(x)].VISIBLE)
+#define CHK_TRANSPARENT(y, x) (IN_BOUNDS((y),(x)) && DUNGEON[(y)][(x)].TRANSPARENT)
+#define CHK_PASSABLE(y, x) (IN_BOUNDS((y),(x)) && DUNGEON[(y)][(x)].PASSABLE)
 
 /* Define enums */
+enum INPUT_MODES {
+  INPUT_ACTION,
+  INPUT_LOOK,
+  INPUT_SCROLL,
+  INPUT_INVENTORY,
+};
+
 enum DIRECTION {
   DIR_NONE,
   DIR_N,
@@ -140,8 +156,8 @@ typedef struct {
 } DUNGEON_BLOCK;
 
 /* Define global data structures */
-DUNGEON_BLOCK DUNGEON[MAX_HEIGHT][MAX_WIDTH];
+DUNGEON_BLOCK **DUNGEON;
 TCOD_map_t fov_map;
-TCOD_parser_t file_parser;
+TCOD_parser_t item_parser;
 
 #endif /* DEFS_H */

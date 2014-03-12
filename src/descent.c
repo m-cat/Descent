@@ -10,34 +10,33 @@
 #include "init.h"
 
 int main() {
-  int i, j, next_turn;
+  int next_turn;
   TCOD_key_t key;
+  TCOD_event_t ev;
+  TCOD_mouse_t mouse;
 
   /* Initialize game */
   init_all(); /* Initialize console and colors */
 
   /* Main menu */
   handle_menu();
-  assert (strlen(player.name) > 0);
 
   /* Generate dungeon */
   dungeon_gen(DUNGEON_CAVE);
-  /* Initialize player */
-  player.x = 1; /* temporary */
-  player.y = 1;
-  player.ch = '@';
-  DUNGEON[1][1].resident = &player;
 
   calc_fov();
   draw_game();
 
   /* MAIN GAME LOOP */
   do {
-    TCOD_sys_wait_for_event(TCOD_EVENT_KEY_PRESS,&key,NULL,1);
+    ev = TCOD_sys_wait_for_event(TCOD_EVENT_KEY|TCOD_EVENT_MOUSE_PRESS,
+				 &key,&mouse,1);
     if (!TCOD_console_is_active())
       continue;
-    next_turn = handle_input(key.vk);
+    next_turn = handle_input(ev, key.vk, key.c, key.lctrl||key.rctrl,
+			     mouse.cx, mouse.cy);
     if (next_turn) { /* if player used up a turn */
+      TURN_COUNT++;
       //advance_turn();
       calc_fov();
     }

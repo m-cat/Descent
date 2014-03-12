@@ -84,7 +84,7 @@ char* name_gen() {
   /* Alternate between choosing vowel and consonant sequences */
   m = rand_int(2,5);
   while (m --> 0 && strlen(word) < MAX_NAME_LEN-3) { /* using the "goes to" operator --> */
-    if (vowel = !vowel) {
+    if ((vowel = !vowel)) {
       c = rand_int(0, vow_i + dvow_i - 1);
       if (c < vow_i)
 	strncat(word, vowels+c, 1);

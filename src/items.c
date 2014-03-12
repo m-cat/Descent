@@ -1,10 +1,16 @@
 #include <stdlib.h>
-#include <stdio.h>
 #include <string.h>
+#include <libtcod.h>
 #include "defs.h"
 #include "items.h"
 
+#define CONCAT(name, property) (strcpy(buf, name), strcat(buf, property))
 void item_init(ITEM *item, char *name) {
+  char buf[40];
+  CONCAT(name, ".type");
+  item->type = TCOD_parser_get_int_property(item_parser, buf);
+  CONCAT(name, ".ch");
+  item->ch = TCOD_parser_get_char_property(item_parser, buf);
   /*  FILE *fp;
   size_t len = 40;
   char *line = malloc(len + 1);

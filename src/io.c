@@ -12,22 +12,6 @@
 int MENU_CHOICE = 0; /* persists when user returns to menu */
 const int MENU_NUM_CHOICES = 2;
 
-/* Define macros */
-#define cprint(y, x, c1, c2, args...)			\
-  (assert((x) >= 0), assert((y) >= 0),			\
-   assert((x) < CON_WIDTH), assert((y) < CON_HEIGHT),	\
-   TCOD_console_set_default_foreground(NULL, c1),	\
-   TCOD_console_set_default_background(NULL, c2),	\
-   TCOD_console_print(NULL, x, y, args))
-#define cprint_center(y, x, c1, c2, args...)		\
-  (TCOD_console_set_alignment(NULL, TCOD_CENTER),	\
-   cprint(y, x, c1, c2, args),				\
-   TCOD_console_set_alignment(NULL, TCOD_LEFT))
-#define cprint_right(y, x, c1, c2, args...)		\
-  (TCOD_console_set_alignment(NULL, TCOD_RIGHT),	\
-   cprint(y, x, c1, c2, args),				\
-   TCOD_console_set_alignment(NULL, TCOD_LEFT))
-
 /* isalnum() does not work properly with ncurses keys */
 int is_alphanum(int c) {
   return ((c >= 'a' && c <= 'z') ||
@@ -43,19 +27,59 @@ TCOD_color_t get_actor_color(ACTOR *a) {
     return TCOD_red;
   case ACTOR_NPC:
     return TCOD_lime;
+  default:
+    return TCOD_white;
   }
 }
 
 void draw_notify(int scr_width) {
-  int j;
+  DUNGEON_BLOCK *block;
+  ACTOR *a;
+  FURN *furn;
   ITEM_STACK *items;
   ITEM *item;
-  items = DUNGEON[player.y][player.x].items;
-  if (items != NULL && items->item != NULL) {
-    item = items->item;
-    cprint(0, 1, TCOD_white, TCOD_black, " You see here %s %s. %s",
-	    a_or_an(item->name), item->name,
-	    (items->next != NULL) ? "(more) " : "");
+  enum TILE_TYPE type;
+  int j;
+
+  for (j = 0; j < scr_width; j++)
+    cprint(0, j, TCOD_white, TCOD_black, " ");
+
+  switch (INPUT_MODE) {
+  case INPUT_ACTION:
+    items = DUNGEON[player.y][player.x].items;
+    if (items != NULL && items->item != NULL) {
+      item = items->item;
+      cprint(0, 2, TCOD_white, TCOD_black, "There's %s %s at your feet. %s",
+	     a_or_an(item->name), item->name,
+	     (items->next != NULL) ? "(more) " : "");
+    }
+    cprint_right(0, CON_WIDTH-UI_WIDTH-2, TCOD_white, TCOD_black, "Turn: %d",
+		 TURN_COUNT+1);
+    break;
+  case INPUT_SCROLL:
+    cprint(0, 2, TCOD_white, TCOD_black, "Scrolling...");
+    break;
+  case INPUT_LOOK:
+    block = &DUNGEON[LOOK_Y][LOOK_X];
+    a = block->resident;
+    furn = block->furn;
+    type = block->type;
+    item = item_get(LOOK_Y, LOOK_X);
+    if (a != NULL)
+      cprint(0, 2, TCOD_white, TCOD_black, "You see %s %s.",
+	     a_or_an(a->name), a->name);
+    else if (furn != NULL)
+      cprint(0, 2, TCOD_white, TCOD_black, "You see %s %s.",
+	     a_or_an(furn->name), furn->name);
+    else if (item != NULL)
+      cprint(0, 2, TCOD_white, TCOD_black, "You see %s %s.",
+	     a_or_an(item->name), item->name);
+    else
+      cprint(0, 2, TCOD_white, TCOD_black, "You see %s %s.",
+	     a_or_an(block->name), block->name);
+    break;
+  default:
+    break;
   }
 }
 
@@ -66,12 +90,14 @@ void draw_view(int scr_width, int scr_height) {
   FURN *furn;
   ITEM *item;
   enum TILE_TYPE type;
-  TCOD_color_t c2; // background color
-  for (i = player.y-scr_height/2; i < player.y+scr_height/2; i++)
-    for (j = player.x-scr_width/2; j < player.x+scr_width/2; j++) {
-      drawi = i-player.y+scr_height/2, drawj = j-player.x+scr_width/2;
+  TCOD_color_t c2; /* background color */
+
+  for (i = CAMERA_Y-scr_height/2+1; i < CAMERA_Y+scr_height/2; i++)
+    for (j = CAMERA_X-scr_width/2; j <= CAMERA_X+scr_width/2; j++) {
+      drawi = i-CAMERA_Y+scr_height/2, drawj = j-CAMERA_X+scr_width/2;
       /* Check if out of bounds */
-      if (i < 0 || i >= CURRENT_HEIGHT || j < 0 || j >= CURRENT_WIDTH) {
+      if (i < DUNGEON_Y || i >= DUNGEON_Y+CURRENT_HEIGHT ||
+	  j < DUNGEON_X || j >= DUNGEON_X+CURRENT_WIDTH) {
 	cprint(drawi, drawj, TCOD_white, TCOD_black, " ");
 	continue;
       }
@@ -84,10 +110,7 @@ void draw_view(int scr_width, int scr_height) {
       }
       /* Check if not visible */
       if (!CHK_VISIBLE(i, j)) {
-	if (block->type == TILE_WALL)
-	  cprint(drawi, drawj, TCOD_sepia, TCOD_black, "#");
-	else
-	  cprint(drawi, drawj, TCOD_sepia, TCOD_black, ".");
+	cprint(drawi, drawj, COL_INACTIVE, TCOD_black, "%c", block->ch);
 	continue;
       }
       /* Draw the contents of the block
@@ -101,6 +124,7 @@ void draw_view(int scr_width, int scr_height) {
       case TILE_LAVA: c2 = TCOD_red; break;
       default: c2 = TCOD_black; break;
       }
+
       if (a != NULL)
 	cprint(drawi, drawj, get_actor_color(a), c2, "%c", a->ch);
       else if (furn != NULL)
@@ -109,14 +133,18 @@ void draw_view(int scr_width, int scr_height) {
 	cprint(drawi, drawj,
 	       TCOD_color_equals(c2,TCOD_blue) ? TCOD_black : TCOD_blue, c2,
 	       "%c", item->ch);
-      else if (block->type == TILE_FLOOR)
-	cprint(drawi, drawj, TCOD_white, TCOD_black, ".");
-      else if (block->type == TILE_WALL)
-	cprint(drawi, drawj, TCOD_white, TCOD_black, "#");
       else if (block->type == TILE_WATER)
-	cprint(drawi, drawj, TCOD_blue, TCOD_black, "~");
-      else if (block->type == TILE_WATER)
-	cprint(drawi, drawj, TCOD_red, TCOD_black, "~");
+	cprint(drawi, drawj, TCOD_blue, c2, "~");
+      else if (block->type == TILE_LAVA)
+	cprint(drawi, drawj, TCOD_red, c2, "~");
+      else
+	cprint(drawi, drawj, COL_ACTIVE, c2, "%c", block->ch);
+
+      if (INPUT_MODE == INPUT_LOOK && i == LOOK_Y && j == LOOK_X) {
+	TCOD_console_set_char_foreground(NULL, drawj, drawi, TCOD_black);
+	TCOD_console_set_char_background(NULL, drawj, drawi, TCOD_amber,
+					 TCOD_BKGND_SET);
+      }
     }
 }
 
@@ -157,7 +185,6 @@ void draw_ui(int ui_x, int ui_y) {
 void draw_game() {
   int scr_width = CON_WIDTH-UI_WIDTH;
   int scr_height = CON_HEIGHT;
-  TCOD_key_t key;
   draw_view(scr_width, scr_height);
   draw_ui(scr_width, 0);
   draw_notify(scr_width);
@@ -226,6 +253,8 @@ void handle_menu() {
       break;
     case TCODK_DOWN:
       MENU_CHOICE = (MENU_CHOICE == MENU_NUM_CHOICES-1) ? 0 : MENU_CHOICE+1;
+      break;
+    default:
       break;
     }
     draw_menu(MENU_MAIN);

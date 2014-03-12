@@ -4,9 +4,9 @@
 
 Descent is a work-in-progress [roguelike](http://en.wikipedia.org/wiki/Roguelike) game. It will differ from most convential roguelikes by foregoing archaic and dated gameplay and instead offering an intuitive and user-friendly experience.
 
-##Current State (3-10-2014)
+##Current State (3-11-2014)
 
-Rewrote much of the code to use the libtcod library. The game looks and feels much nicer as a result, and I now have access to useful things like generic lists. Temporarily took out items while I figure out how to use libtcod's config file parser. All items, monsters, NPCs, etc. will be defined in external config files.
+Setting up the file parser is taking longer than it should, due to libtcod's incomplete documentation. In the meantime I worked on improving dungeon generation and added two new features - the ability to scroll (hold the ctrl key) and the ability to examine features on the grid (press x).
 
 ###To Do
 
@@ -14,7 +14,7 @@ Rewrote much of the code to use the libtcod library. The game looks and feels mu
 
 - Add items back in
 
-- Improve the cave generation and add another cave gen algorithm
+- Add enemies
 
 - Add dungeon generation
 

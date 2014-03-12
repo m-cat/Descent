@@ -3,7 +3,7 @@
 
 #include "defs.h"
 
-int can_move(ACTOR *a, enum DIRECTION d);
-void actor_move(ACTOR *a, enum DIRECTION d);
+int can_move(ACTOR *a, int dy, int dx);
+void actor_move(ACTOR *a, int dy, int dx);
 
 #endif

@@ -38,8 +38,9 @@ void CLR_OPTS(int y, int x) {
 void dungeon_clear() {
   int i, j;
   DUNGEON_BLOCK *block;
-  ITEM_STACK *items;
-  ITEM_STACK *temp;
+  ITEM_N **iterator;
+
+  /* Clear all blocks */
   for (i = 0; i < MAX_HEIGHT; i++) {
     for (j = 0; j < MAX_WIDTH; j++) {
       block = &DUNGEON[i][j];
@@ -47,17 +48,28 @@ void dungeon_clear() {
       CLR_OPTS(i, j);
       SET_WALL(i, j);
       block->resident = NULL;
-      block->furn = NULL;
-      items = block->items;
-      /* Delete every node in a stash */
-      while (items != NULL) {
-	temp = items->next;
-	free(items);
-	items = temp;
+      if (block->furn != NULL) {
+	free(block->furn);
+	block->furn = NULL;
       }
-      block->items = NULL;
+
+      /* Delete every item in a stash */
+      if (block->stash != NULL) {
+	for (iterator = (ITEM_N**)TCOD_list_begin(*(block->stash));
+	     iterator != (ITEM_N**)TCOD_list_end(*(block->stash)); iterator++) {
+	  item_delete((*iterator)->item); /* free the item */
+	  free((*iterator));       /* free the item_n */
+	}
+	TCOD_list_delete(block->stash);
+	free(block->stash);
+	block->stash = NULL;
+      }
     }
   }
+
+  /* Delete all actors */
+
+  /* Clear fov map for dungeon */
   TCOD_map_clear(fov_map, 0, 0);
 }
 
@@ -174,18 +186,19 @@ void dungeon_gen_cave(int goal) {
       break;
     }
   }
+  SET_FLOOR(y, x);
   player_place(y, x);
 }
 
 void dungeon_place_items() {
   /* Place items */
-  int i = 10, x, y;
+  int i = 12, x, y;
   while (i --> 0) {
     do {
       x = rand_int(DUNGEON_X+1, DUNGEON_X+CURRENT_WIDTH-1);
       y = rand_int(DUNGEON_Y+1, DUNGEON_Y+CURRENT_HEIGHT-1);
     } while (DUNGEON[y][x].type != TILE_FLOOR);
-    item_place(y, x, "diamond");
+    item_place(y, x, rand_int(0,1) ? "diamond" : "apple");
     }  
 }
 
@@ -207,6 +220,6 @@ void dungeon_gen(enum DUNGEON_TYPE type) {
   default:
     break;
   }
-  //dungeon_place_items();
+  dungeon_place_items();
   dungeon_set_fov();
 }

@@ -7,6 +7,7 @@
 #include "player.h"
 #include "algorithms.h"
 #include "io.h"
+#include "menu.h"
 #include "init.h"
 
 int main() {

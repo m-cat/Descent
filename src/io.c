@@ -8,16 +8,6 @@
 #include "player.h"
 #include "io.h"
 
-/* Define menu variables */
-int MENU_CHOICE = 0; /* persists when user returns to menu */
-const int MENU_NUM_CHOICES = 2;
-
-/* isalnum() does not work properly with ncurses keys */
-int is_alphanum(int c) {
-  return ((c >= 'a' && c <= 'z') ||
-	  (c >= 'A' && c <= 'Z') ||
-	  (c >= '0' && c <= '9'));
-}
 
 TCOD_color_t get_actor_color(ACTOR *a) {
   switch (a->type) {
@@ -32,11 +22,12 @@ TCOD_color_t get_actor_color(ACTOR *a) {
   }
 }
 
+#define OFFSET_NOT 1 /* x-offset for notification message */
 void draw_notify(int scr_width) {
   DUNGEON_BLOCK *block;
   ACTOR *a;
   FURN *furn;
-  ITEM_STACK *items;
+  TCOD_list_t *stash;
   ITEM *item;
   enum TILE_TYPE type;
   int j;
@@ -46,36 +37,36 @@ void draw_notify(int scr_width) {
 
   switch (INPUT_MODE) {
   case INPUT_ACTION:
-    items = DUNGEON[player.y][player.x].items;
-    if (items != NULL && items->item != NULL) {
-      item = items->item;
-      cprint(0, 2, TCOD_white, TCOD_black, "There's %s %s at your feet. %s",
+    stash = DUNGEON[player.y][player.x].stash;
+    item = item_get_top(player.y, player.x);
+    if (stash != NULL && item != NULL) {
+      cprint(0, OFFSET_NOT, TCOD_white, TCOD_black, "There's %s %s at your feet. %s",
 	     a_or_an(item->name), item->name,
-	     (items->next != NULL) ? "(more) " : "");
+	     (TCOD_list_size(*stash) > 1) ? "(more) " : "");
     }
     cprint_right(0, CON_WIDTH-UI_WIDTH-2, TCOD_white, TCOD_black, "Turn: %d",
 		 TURN_COUNT+1);
     break;
   case INPUT_SCROLL:
-    cprint(0, 2, TCOD_white, TCOD_black, "Scrolling...");
+    cprint(0, OFFSET_NOT, TCOD_white, TCOD_black, "Scrolling...");
     break;
   case INPUT_LOOK:
     block = &DUNGEON[LOOK_Y][LOOK_X];
     a = block->resident;
     furn = block->furn;
     type = block->type;
-    item = item_get(LOOK_Y, LOOK_X);
+    item = item_get_top(LOOK_Y, LOOK_X);
     if (a != NULL)
-      cprint(0, 2, TCOD_white, TCOD_black, "You see %s %s.",
+      cprint(0, OFFSET_NOT, TCOD_white, TCOD_black, "You see %s %s.",
 	     a_or_an(a->name), a->name);
     else if (furn != NULL)
-      cprint(0, 2, TCOD_white, TCOD_black, "You see %s %s.",
+      cprint(0, OFFSET_NOT, TCOD_white, TCOD_black, "You see %s %s.",
 	     a_or_an(furn->name), furn->name);
     else if (item != NULL)
-      cprint(0, 2, TCOD_white, TCOD_black, "You see %s %s.",
+      cprint(0, OFFSET_NOT, TCOD_white, TCOD_black, "You see %s %s.",
 	     a_or_an(item->name), item->name);
     else
-      cprint(0, 2, TCOD_white, TCOD_black, "You see %s %s.",
+      cprint(0, OFFSET_NOT, TCOD_white, TCOD_black, "You see %s %s.",
 	     a_or_an(block->name), block->name);
     break;
   default:
@@ -118,7 +109,7 @@ void draw_view(int scr_width, int scr_height) {
       a = block->resident;
       furn = block->furn;
       type = block->type;
-      item = item_get(i, j);
+      item = item_get_top(i, j);
       switch (type) {
       case TILE_WATER: c2 = TCOD_blue; break;
       case TILE_LAVA: c2 = TCOD_red; break;
@@ -130,9 +121,7 @@ void draw_view(int scr_width, int scr_height) {
       else if (furn != NULL)
 	cprint(drawi, drawj, TCOD_yellow, c2, "%c", furn->ch);
       else if (item != NULL)
-	cprint(drawi, drawj,
-	       TCOD_color_equals(c2,TCOD_blue) ? TCOD_black : TCOD_blue, c2,
-	       "%c", item->ch);
+	cprint(drawi, drawj, item->col, c2, "%c", item->ch);
       else if (block->type == TILE_WATER)
 	cprint(drawi, drawj, TCOD_blue, c2, "~");
       else if (block->type == TILE_LAVA)
@@ -148,126 +137,93 @@ void draw_view(int scr_width, int scr_height) {
     }
 }
 
+void draw_inventory(int ui_x, int ui_y) {
+  ITEM_N **iterator;
+  int i;
+
+  cprint_center(ui_y+1, ui_x+UI_WIDTH/2+1, TCOD_white, TCOD_black,
+		"Examine | Use | Drop");
+  cprint_center(ui_y+2, ui_x+UI_WIDTH/2+1, TCOD_white, TCOD_black,
+		"Wield | Wear");
+
+  for (iterator = (ITEM_N**)TCOD_list_begin(*(player.inventory)), i = 0;
+       iterator != (ITEM_N**)TCOD_list_end(*(player.inventory)); iterator++, i++) {
+    if ((*iterator)->n > 1)
+      cprint(ui_y+4+i, ui_x+2, TCOD_white, TCOD_black, "%c - %s x%d",
+	     'a'+i, (*iterator)->item->name, (*iterator)->n);
+    else
+      cprint(ui_y+4+i, ui_x+2, TCOD_white, TCOD_black, "%c - %s",
+	     'a'+i, (*iterator)->item->name);
+  }
+}
+
 void draw_ui(int ui_x, int ui_y) {
   int i, j;
+  char **iterator;
 
   /* Draw separator and borders */
   for (i = 0; i < CON_HEIGHT; i++)
     cprint(i, ui_x, TCOD_black, TCOD_white, " ");
 
-  /* Draw name */
-  for (j = ui_x+2; j <= CON_WIDTH-2; j++)
-    cprint(ui_y+1, j, TCOD_lime, TCOD_black, "~");
-  cprint_center(ui_y+1, ui_x+UI_WIDTH/2+1,
-	  TCOD_white, TCOD_black, " %s ", player.name);
+  switch (INPUT_MODE) {
+  case INPUT_INVENTORY:
+    draw_inventory(ui_x, ui_y);
+    break;
+  default:
+     /* Draw name */
+    for (j = ui_x+2; j <= CON_WIDTH-2; j++)
+      cprint(ui_y+1, j, TCOD_lime, TCOD_black, "~");
+    cprint_center(ui_y+1, ui_x+UI_WIDTH/2+1,
+		  TCOD_white, TCOD_black, " %s ", player.name);
 
-  /* Draw level and exp */
-  cprint(ui_y+3, ui_x+3, TCOD_white, TCOD_black, "Level: %d", player.level);
-  cprint_right(ui_y+3, CON_WIDTH-3, TCOD_white, TCOD_black,
-	  "Exp: %d", player.exp);
+    /* Draw level and exp */
+    cprint(ui_y+3, ui_x+3, TCOD_white, TCOD_black, "Level: %d", player.level);
+    cprint(ui_y+4, ui_x+3, TCOD_white, TCOD_black,
+	   "Exp: %d / %d", player.exp, player.level*100);
 
-  /* Draw hp and mp */
-  cprint(ui_y+5, ui_x+10, TCOD_white, TCOD_black, "%d / %d", 12, 32);
-  cprint(ui_y+6, ui_x+3, TCOD_white, TCOD_black, "HP: [");
-  for (j = ui_x+8; j < CON_WIDTH-3; j++)
-    cprint(ui_y+6, j, TCOD_flame, TCOD_black, "=");
-  cprint(ui_y+6, CON_WIDTH-3, TCOD_white, TCOD_black, "]");
+    /* Draw depth */
+    cprint_right(ui_y+3, CON_WIDTH-3, TCOD_white, TCOD_black, "Depth: %d", DEPTH);
 
-  cprint(ui_y+8, ui_x+10, TCOD_white, TCOD_black, "%d / %d", 5, 5);
-  cprint(ui_y+9, ui_x+3, TCOD_white, TCOD_black, "MP: [");
-  for (j = ui_x+8; j < CON_WIDTH-3; j++)
-    cprint(ui_y+9, j, TCOD_azure, TCOD_black, "=");
-  cprint(ui_y+9, CON_WIDTH-3, TCOD_white, TCOD_black, "]");
+    /* Draw hp and mp */
+#define OFFSET_HP 7
+    cprint(ui_y+OFFSET_HP, ui_x+10, TCOD_white, TCOD_black, "%d / %d", 12, 32);
+    cprint(ui_y+OFFSET_HP+1, ui_x+3, TCOD_white, TCOD_black, "HP: [");
+    for (j = ui_x+8; j < CON_WIDTH-3; j++)
+      cprint(ui_y+OFFSET_HP+1, j, TCOD_flame, TCOD_black, "=");
+    cprint(ui_y+OFFSET_HP+1, CON_WIDTH-3, TCOD_white, TCOD_black, "]");
 
-  /* Draw weapon name */
+    cprint(ui_y+OFFSET_HP+3, ui_x+10, TCOD_white, TCOD_black, "%d / %d", 5, 5);
+    cprint(ui_y+OFFSET_HP+4, ui_x+3, TCOD_white, TCOD_black, "MP: [");
+    for (j = ui_x+8; j < CON_WIDTH-3; j++)
+      cprint(ui_y+OFFSET_HP+4, j, TCOD_azure, TCOD_black, "=");
+    cprint(ui_y+OFFSET_HP+4, CON_WIDTH-3, TCOD_white, TCOD_black, "]");
+
+    /* Draw weapon name */
+
+    /* Draw messages */
+#define OFFSET_MSG 12
+    for (j = ui_x; j < CON_WIDTH; j++)
+      cprint(CON_HEIGHT-OFFSET_MSG, j, TCOD_black, TCOD_white, " ");
+    for (iterator = (char**)TCOD_list_end(message_list)-1, i = CON_HEIGHT-2;
+	 i > CON_HEIGHT-OFFSET_MSG+1 && iterator != (char**)TCOD_list_begin(message_list)-1;
+	 iterator--, i--) {
+      cprint(i, ui_x+2, TCOD_white, TCOD_black, "%s", *iterator);
+    }
+    break;
+  }
 }
 
 void draw_game() {
   int scr_width = CON_WIDTH-UI_WIDTH;
   int scr_height = CON_HEIGHT;
+  TCOD_console_clear(NULL);
   draw_view(scr_width, scr_height);
   draw_ui(scr_width, 0);
   draw_notify(scr_width);
   TCOD_console_flush();
 }
 
-enum MENU_SCREEN {
-  MENU_MAIN,
-  MENU_NAME,
-};
 
 
-void draw_menu(enum MENU_SCREEN menu) {
-  char *str, *temp;
-  int cur_len, max_len, x;
-  TCOD_key_t key;
-  switch (menu) {
-  case MENU_MAIN:
-    cprint(1, 1, TCOD_white, TCOD_black, "  New Game");
-    cprint(2, 1, TCOD_white, TCOD_black, "  Quit");
-    cprint(MENU_CHOICE+1, 1, TCOD_white, TCOD_black, ">");
-    TCOD_console_flush();
-    break;
-  case MENU_NAME:
-    cur_len = 0, max_len = MAX_NAME_LEN;
-    x = strlen("Enter your name: ") + 1;
-    str = calloc(max_len+1, 1);
 
-    do {
-      TCOD_console_clear(NULL);
-      cprint(1, x, TCOD_white, TCOD_black, "%s_", str);
-      cprint(1, x+max_len-1, TCOD_white, TCOD_black, " "); /* erase '_' if at end */
-      cprint(1, 1, TCOD_white, TCOD_black, "Enter your name: ");
-      cprint(3, 1, TCOD_white, TCOD_black, "Press space for a random name.");
-      TCOD_console_flush();
 
-      TCOD_sys_wait_for_event(TCOD_EVENT_KEY_PRESS,&key,NULL,1);
-      if ((is_alphanum(key.c) || key.c == '-') && cur_len < max_len-1) {
-	str[cur_len++] = key.c;
-	str[cur_len] = 0;
-      }
-      else if ((key.vk == TCODK_BACKSPACE || key.vk == TCODK_DELETE) && cur_len > 0)
-	str[--cur_len] = 0;
-      else if (key.c == ' ') {
-	temp = name_gen();
-	cur_len = strlen(strcpy(str, temp));
-	free(temp);
-      }
-    } while (!(key.vk == TCODK_ENTER && cur_len != 0));
-    assert (strlen(str) > 0);
-    player.name = str;
-    break;
-  }
-}
-
-void handle_menu() {
-  TCOD_key_t key;
-
-  draw_menu(MENU_MAIN);
-  /* Initial menu screen */
-  do {
-    TCOD_sys_wait_for_event(TCOD_EVENT_KEY_PRESS,&key,NULL,1);
-    switch (key.vk) {
-    case TCODK_UP:
-      MENU_CHOICE = (MENU_CHOICE == 0) ? MENU_NUM_CHOICES-1 : MENU_CHOICE-1;
-      break;
-    case TCODK_DOWN:
-      MENU_CHOICE = (MENU_CHOICE == MENU_NUM_CHOICES-1) ? 0 : MENU_CHOICE+1;
-      break;
-    default:
-      break;
-    }
-    draw_menu(MENU_MAIN);
-  } while (key.vk != TCODK_ENTER && key.c != ' ');
-
-  TCOD_console_clear(NULL);
-
-  /* QUIT */
-  if (MENU_CHOICE == 1)
-    exit(0);
-
-  /* NEW GAME */
-  draw_menu(MENU_NAME);
-
-  TCOD_console_clear(NULL);
-}

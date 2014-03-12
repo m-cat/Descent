@@ -7,6 +7,19 @@
 #include "defs.h"
 #include "util.h"
 
+void message_add(char *str) {
+  if (TCOD_list_size(message_list) > MESSAGE_LIST_LEN)
+    TCOD_list_remove(message_list, 0);
+  TCOD_list_push(message_list, (const void *)str);
+}
+
+char *strdup (const char *s) {
+    char *d = malloc (strlen (s) + 1);   // Space for length plus nul
+    if (d == NULL) return NULL;          // No memory
+    strcpy (d,s);                        // Copy the characters
+    return d;                            // Return the new string
+}
+
 /* Returns random integer in [a, b] */
 int rand_int(int a, int b) {
   return TCOD_random_get_int(NULL, a, b);

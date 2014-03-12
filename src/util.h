@@ -9,6 +9,10 @@
 #define SIGN(n) ((n) ? ((n>0) ? 1 : -1) : 0)
 #define SWAP(a,b) ((a) ^= (b), (b) ^= (a), (a) ^= (b))
 
+void message_add(char *str);
+
+char *strdup (const char *s);
+
 int rand_int(int a, int b);
 double rand_float(double a, double b);
 int intlen(int a);

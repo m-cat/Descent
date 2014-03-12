@@ -1,7 +1,7 @@
 #include "defs.h"
 
 /* Initialize variables */
-int LEVEL = 1;
+int DEPTH = 1;
 int CURRENT_WIDTH = 80, CURRENT_HEIGHT = 50;
 int DUNGEON_X = 0, DUNGEON_Y = 0;
 int INPUT_MODE = INPUT_ACTION;

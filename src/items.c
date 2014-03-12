@@ -1,64 +1,104 @@
 #include <stdlib.h>
 #include <string.h>
 #include <libtcod.h>
+#include <assert.h>
 #include "defs.h"
+#include "io.h"
 #include "items.h"
 
-#define CONCAT(name, property) (strcpy(buf, name), strcat(buf, property))
-void item_init(ITEM *item, char *name) {
-  char buf[40];
-  CONCAT(name, ".type");
-  item->type = TCOD_parser_get_int_property(item_parser, buf);
-  CONCAT(name, ".ch");
-  item->ch = TCOD_parser_get_char_property(item_parser, buf);
-  /*  FILE *fp;
-  size_t len = 40;
-  char *line = malloc(len + 1);
-
-  fp = fopen("data/items", "r");
-  if (fp == NULL) {
-    fclose(fp);
-    fprintf(stderr, "Could not find data/items file.\n");
-    exit(1);
-  }
-
-  while (getline2(line, &len, fp) != -1) {
-    if (strcmp(line, name) == 0) {
-      item->name = name;
-      getline2(line, &len, fp);
-      item->type = atoi(line);
-      getline2(line, &len, fp);
-      item->ch = line[0];
-
-      fclose(fp);
-      return;
-    }
-  }
-
-  fclose(fp);
-  fprintf(stderr, "Error reading data/items file.\n");
-  exit(1);*/
-  ;
+void item_copy(ITEM *dest, ITEM *source) {
+  float h, s, v;
+  dest->name = strdup(source->name);
+  dest->type = source->type;
+  dest->ch = source->ch;
+  TCOD_color_get_HSV(source->col, &h, &s, &v);
+  TCOD_color_set_HSV(&(dest->col), h, s, v);
 }
 
-ITEM* item_get(int y, int x) {
-  if (DUNGEON[y][x].items == NULL)
+ITEM* item_create(char *name) {
+  ITEM **iterator;
+  ITEM *item;
+  for (iterator = (ITEM**)TCOD_list_begin(item_type_list);
+       iterator != (ITEM**)TCOD_list_end(item_type_list); iterator++) {
+    if (strcmp(name, (*iterator)->name) == 0) {
+      item = malloc(sizeof(ITEM));
+      item_copy(item, (*iterator));
+      return item;
+    }
+  }
+  return NULL;
+}
+
+/* Returns a pointer to the top stack's item.
+   Does NOT remove the item from the stash */
+ITEM* item_get_top(int y, int x) {
+  ITEM_N *item_n;
+  if (DUNGEON[y][x].stash == NULL || TCOD_list_is_empty(*(DUNGEON[y][x].stash)))
     return NULL;
-  return DUNGEON[y][x].items->item;
+  item_n = (ITEM_N*)TCOD_list_peek(*(DUNGEON[y][x].stash));
+  return item_n->item;
+}
+
+/* Removes and returns an item from position i in the stash */
+ITEM* item_pickup(int y, int x, int i) {
+  ITEM *item;
+  ITEM_N *item_n;
+
+  if (i == -1)
+    item_n = (ITEM_N*)TCOD_list_peek(*(DUNGEON[y][x].stash));
+  else
+    item_n = (ITEM_N*)TCOD_list_get(*(DUNGEON[y][x].stash), i);
+  item = malloc(sizeof(ITEM));
+  item_copy(item, item_n->item);
+  if (item_n->n > 1)
+    item_n->n --;
+  else {
+    TCOD_list_remove(*(DUNGEON[y][x].stash), (const void *)item_n);
+    item_delete(item_n->item);
+    free(item_n);
+  }
+  return item;
+}
+
+void item_drop(int y, int x, ITEM *item) {
+  ITEM_N *item_n;
+  ITEM_N **iterator;
+  TCOD_list_t *stash = DUNGEON[y][x].stash;
+
+  if (stash == NULL) {
+    stash = malloc(sizeof(TCOD_list_t));
+    *stash = TCOD_list_allocate(1);
+  }
+  else {
+    /* Search for preexisting stack of the same item */
+    for (iterator = (ITEM_N**)TCOD_list_begin(*stash);
+	 iterator != (ITEM_N**)TCOD_list_end(*stash); iterator++) {
+      if (strcmp((*iterator)->item->name, item->name) == 0) {
+	(*iterator)->n ++;
+	item_delete(item);
+	return;
+      }
+    }
+  }
+  
+  /* No stack of the same item exists, create new stack */
+  item_n = malloc(sizeof(ITEM_N));
+  item_n->item = item;
+  item_n->n = 1;
+  TCOD_list_push(*stash, (const void *)item_n);
+
+  DUNGEON[y][x].stash = stash;
 }
 
 void item_place(int y, int x, char* name) {
-  ITEM *item = malloc(sizeof(ITEM));
-  item_init(item, name);
+  ITEM *item = item_create(name);
+  assert(item != NULL);
   item_drop(y, x, item);
 }
-void item_drop(int y, int x, ITEM *item) {
-  ITEM_STACK *items = DUNGEON[y][x].items;
-  ITEM_STACK *new_items = malloc(sizeof(ITEM_STACK));
-  new_items->item = item;
-  new_items->next = items;
-  if (items != NULL)
-    items->prev = new_items;
-  new_items->prev = NULL;
-  DUNGEON[y][x].items = new_items;
+
+void item_delete(ITEM *item) {
+  assert (item != NULL);
+  assert (item->name != NULL);
+  free(item->name);
+  free(item);
 }

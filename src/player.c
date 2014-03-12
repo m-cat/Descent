@@ -1,9 +1,11 @@
 #include <libtcod.h>
 #include "defs.h"
+#include "items.h"
 #include "actor.h"
 #include "player.h"
 
 ACTOR player;
+
 
 void player_place(int y, int x) {
   player.x = x;
@@ -44,9 +46,10 @@ int handle_input(TCOD_event_t ev, TCOD_keycode_t key, char ch, int ctrl,
   /* Change input modes */
   if ((INPUT_MODE == INPUT_ACTION) && ctrl)
     INPUT_MODE = INPUT_SCROLL;
-  else if ((INPUT_MODE == INPUT_ACTION) && ev == TCOD_EVENT_KEY_PRESS && ch=='x') {
+  else if ((INPUT_MODE == INPUT_ACTION) && ev == TCOD_EVENT_KEY_PRESS && ch=='x')
     INPUT_MODE = INPUT_LOOK;
-  }
+  else if ((INPUT_MODE == INPUT_ACTION) && ev == TCOD_EVENT_KEY_PRESS && ch=='i')
+    INPUT_MODE = INPUT_INVENTORY;
   else if ((INPUT_MODE == INPUT_ACTION || INPUT_MODE == INPUT_LOOK)
 	   && ev == TCOD_EVENT_MOUSE_PRESS) {
     m_y += player.y-CON_HEIGHT/2;
@@ -63,6 +66,9 @@ int handle_input(TCOD_event_t ev, TCOD_keycode_t key, char ch, int ctrl,
   else if ((INPUT_MODE == INPUT_SCROLL) && !ctrl)
     INPUT_MODE = INPUT_ACTION;
   else if ((INPUT_MODE == INPUT_LOOK) && ev == TCOD_EVENT_KEY_PRESS && ch=='x') {
+    INPUT_MODE = INPUT_ACTION;
+  }
+  else if ((INPUT_MODE == INPUT_INVENTORY) && ev == TCOD_EVENT_KEY_PRESS && ch=='i') {
     INPUT_MODE = INPUT_ACTION;
   }
 
@@ -113,13 +119,34 @@ int handle_input(TCOD_event_t ev, TCOD_keycode_t key, char ch, int ctrl,
     break;
   case TCODK_CHAR:
     switch (ch) {
-    case '>':
-      if (DUNGEON[player.y][player.x].type == TILE_STAIRS_DOWN) {
-	// dungeon_change
-	ret = 1;
+    case '.': /* pickup item */
+      if (INPUT_MODE == INPUT_ACTION) {
+	if (item_get_top(player.y, player.x) != NULL) {
+	  actor_pickup(&player, player.y, player.x, -1);
+	  ret = 1;
+	}
       }
-      else
-	;
+      break;
+    case 'd': /* drop item */
+      if (INPUT_MODE == INPUT_ACTION) {
+	if (TCOD_list_size(*(player.inventory)) > 0) {
+	  actor_drop(&player, player.y, player.x, -1);
+	  ret = 1;
+	}
+      }
+      break;
+    case '>':
+      if (INPUT_MODE == INPUT_ACTION) {
+	if (DUNGEON[player.y][player.x].type == TILE_STAIRS_DOWN) {
+	  /* Take the stairs down */
+	  ret = 1;
+	}
+	else
+	  ;
+      }
+      break;
+    default:
+      break;
     }
     break;
   default:

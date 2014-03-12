@@ -17,6 +17,5 @@
 
 void draw_game();
 void draw_menu();
-void handle_menu();
 
 #endif

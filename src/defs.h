@@ -14,19 +14,21 @@ extern const char *GAME_NAME;
 #define UI_WIDTH 31
 
 #define MAX_NAME_LEN UI_WIDTH-6
+#define MESSAGE_LIST_LEN 128
 
 #define FOV_RADIUS 16
 #define COL_ACTIVE TCOD_brass
-#define COL_INACTIVE TCOD_dark_sepia
+#define COL_INACTIVE TCOD_darker_sepia
 
 /* Define global variables */
-extern int LEVEL;
+extern int DEPTH;
 extern int CURRENT_WIDTH, CURRENT_HEIGHT;
 extern int DUNGEON_X, DUNGEON_Y;
+extern int TURN_COUNT;
+
 extern int INPUT_MODE;
 extern int CAMERA_X, CAMERA_Y;
 extern int LOOK_X, LOOK_Y;
-extern int TURN_COUNT;
 
 /* Define macros */
 #define IN_BOUNDS(y, x) ((y) >= 0 && (x) >= 0 &&		\
@@ -84,10 +86,11 @@ enum ACTOR_TYPE {
 };
 
 enum ITEM_TYPE {
-  ITEM_WEAPON,
-  ITEM_ARMOR,
-  ITEM_POTION,
-  ITEM_TRINKET,
+  ITEM_WEAPON     = 0,
+  ITEM_ARMOR      = 1,
+  ITEM_POTION     = 2,
+  ITEM_TRINKET    = 3,
+  ITEM_CONSUMABLE = 4,
 };
 
 enum FURN_TYPE {
@@ -95,51 +98,46 @@ enum FURN_TYPE {
   FURN_BRIDGE,
 };
 
-enum OPT_TRAVEL {
-  CAN_MOVE,
-  CAN_WALK,
-  CAN_SWIM,
-  CAN_FLY,
-  CAN_BURROW,
-};
-
-enum OPT_FURN {
-  FURN_PASSABLE,
-  FURN_FLAMMABLE,
-};
-
 /* Define structs */
-typedef struct {
-  enum ACTOR_TYPE type;
-  char *name; /* remember to free when removing the actor */
-  char ch; /* display character */
-  int x, y; /* position */
-  int level, exp;
-  int hp_max, hp_cur;
-  int spd; /* movement priority */
-  /* Define a bunch more variables... */
-  int opt_travel;
-} ACTOR;
+
 
 typedef struct ITEM ITEM;
 struct ITEM {
   enum ITEM_TYPE type;
   char *name;
   char ch;
+  TCOD_color_t col;
 };
 
-typedef struct ITEM_STACK ITEM_STACK;
-struct ITEM_STACK {
+typedef struct {
   ITEM *item;
-  ITEM_STACK *next;
-  ITEM_STACK *prev;
-};
+  int n; /* Number of items of the type */
+} ITEM_N;
+
+typedef struct {
+  enum ACTOR_TYPE type;
+  char *name; /* remember to free when removing the actor */
+  char ch;    /* display character */
+  int x, y;   /* position */
+  int level, exp;
+  int hp_max, hp_cur;
+  int spd; /* movement priority */
+
+  TCOD_list_t *inventory; /* remember to free */
+
+  char CAN_MOVE,
+    CAN_WALK,
+    CAN_SWIM,
+    CAN_FLY,
+    CAN_BURROW;
+} ACTOR;
 
 typedef struct {
   enum FURN_TYPE type;
   char *name;
   char ch;
-  int opt_furn;
+  char FURN_PASSABLE,
+    FURN_FLAMMABLE;
 } FURN;
 
 typedef struct {
@@ -147,7 +145,7 @@ typedef struct {
   char *name;
   char ch;
   ACTOR *resident; /* actor currently residing in tile */
-  ITEM_STACK *items;
+  TCOD_list_t *stash;
   FURN *furn;
   char EXPLORED,
     VISIBLE,
@@ -158,6 +156,7 @@ typedef struct {
 /* Define global data structures */
 DUNGEON_BLOCK **DUNGEON;
 TCOD_map_t fov_map;
-TCOD_parser_t item_parser;
+TCOD_list_t item_type_list;
+TCOD_list_t message_list;
 
 #endif /* DEFS_H */

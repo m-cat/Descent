@@ -33,48 +33,122 @@ void CLR_OPTS(int y, int x) {
   DUNGEON[y][x].VISIBLE = 0;
   DUNGEON[y][x].EXPLORED = 0;
 }
+void CLR_BLOCK(int y, int x) {
+  ITEM_N **iterator;
+  DUNGEON_BLOCK *block = &DUNGEON[y][x];
 
-/* Set the dungeon to be all walls */
+  assert(block != NULL);
+  CLR_OPTS(y, x);
+  block->resident = NULL; /* Don't free the resident here;
+			     we do it in dungeon_clear(). */
+  if (block->furn != NULL) {
+    free(block->furn);
+    block->furn = NULL;
+  }
+  /* Delete every item in a stash */
+  if (block->stash != NULL) {
+    for (iterator = (ITEM_N**)TCOD_list_begin(*(block->stash));
+	 iterator != (ITEM_N**)TCOD_list_end(*(block->stash)); iterator++) {
+      item_delete((*iterator)->item); /* free the item */
+      free((*iterator));       /* free the item_n */
+    }
+    TCOD_list_delete(block->stash);
+    free(block->stash);
+    block->stash = NULL;
+  }
+}
+
+/* Clear all data from every dungeon block.
+   Set the dungeon to be all walls. */
 void dungeon_clear() {
   int i, j;
-  DUNGEON_BLOCK *block;
-  ITEM_N **iterator;
 
   /* Clear all blocks */
   for (i = 0; i < MAX_HEIGHT; i++) {
     for (j = 0; j < MAX_WIDTH; j++) {
-      block = &DUNGEON[i][j];
-      assert(block != NULL);
-      CLR_OPTS(i, j);
+      CLR_BLOCK(i, j);
       SET_WALL(i, j);
-      block->resident = NULL;
-      if (block->furn != NULL) {
-	free(block->furn);
-	block->furn = NULL;
-      }
-
-      /* Delete every item in a stash */
-      if (block->stash != NULL) {
-	for (iterator = (ITEM_N**)TCOD_list_begin(*(block->stash));
-	     iterator != (ITEM_N**)TCOD_list_end(*(block->stash)); iterator++) {
-	  item_delete((*iterator)->item); /* free the item */
-	  free((*iterator));       /* free the item_n */
-	}
-	TCOD_list_delete(block->stash);
-	free(block->stash);
-	block->stash = NULL;
-      }
     }
   }
 
   /* Delete all actors */
 
-  /* Clear fov map for dungeon */
-  TCOD_map_clear(fov_map, 0, 0);
+  /* Delete the fov map */
+  TCOD_map_delete(fov_map);
+}
+
+/* Resizes a dungeon by amount ABS(resize_x), ABS(resize_y).
+   If resize_x or resize_y are negative, the dungeon will be
+   resized in the negative direction - that is, elements
+   will be shifted over to simulate a negatively-expanded grid. */
+void dungeon_resize(int resize_x, int resize_y) {
+  int i, j;
+  int prev_height = MAX_HEIGHT, prev_width = MAX_WIDTH;
+  int abs_resize_y = ABS(resize_y), abs_resize_x = ABS(resize_x);
+
+  if (resize_y < 0)
+    DUNGEON_Y += abs_resize_y;
+  if (resize_x < 0)
+    DUNGEON_X += abs_resize_x;
+
+  if (resize_y) {
+    MAX_HEIGHT += abs_resize_y;
+    DUNGEON = realloc(DUNGEON, MAX_HEIGHT * sizeof(DUNGEON_BLOCK *));
+    /* If resize_y < 0, shift over all the rows */
+    if (resize_y < 0) {
+      for (i = prev_height-1; i >= 0; i--)
+	DUNGEON[i+abs_resize_y] = DUNGEON[i];
+      for (i = abs_resize_y-1; i >= 0; i--) {
+	DUNGEON[i] = calloc(MAX_WIDTH, sizeof(DUNGEON_BLOCK));
+	for (j = 0; j < MAX_WIDTH; j++)
+	  SET_WALL(i, j);
+      }
+    }
+    else {
+      for (i = prev_height; i < MAX_HEIGHT; i++) {
+	DUNGEON[i] = calloc(MAX_WIDTH, sizeof(DUNGEON_BLOCK));
+	for (j = 0; j < MAX_WIDTH; j++)
+	  SET_WALL(i, j);
+      }
+    }
+  }
+
+  if (resize_x) {
+    MAX_WIDTH += abs_resize_x;
+    for (i = 0; i < MAX_HEIGHT; i++) {
+      DUNGEON[i] = realloc(DUNGEON[i], MAX_WIDTH * sizeof(DUNGEON_BLOCK));
+      if (resize_x < 0) {
+	/* Shift over all the columns */
+	for (j = prev_width-1; j >= 0; j--)
+	  DUNGEON[i][j+abs_resize_x] = DUNGEON[i][j];
+	for (j = abs_resize_x-1; j >= 0; j--) {
+	  DUNGEON[i][j].furn = NULL; /* Since this dungeon block has the
+					old values, we need to prevent
+					CLR_BLOCK() from calling free()
+					on an existing furn. */
+	  DUNGEON[i][j].stash = NULL; /* Same deal here. */
+	  CLR_BLOCK(i, j);
+	  SET_WALL(i, j);
+	}
+      }
+      else {
+	for (j = prev_width; j < MAX_WIDTH; j++) {
+	  DUNGEON[i][j].furn = NULL; /* This dungeon block will have
+					garbage values; we need to 
+					prevent CLR_BLOCK() from calling
+					free() on them. */
+	  DUNGEON[i][j].stash = NULL;
+	  CLR_BLOCK(i, j);
+	  SET_WALL(i, j);
+	}
+      }
+    }
+  }
 }
 
 void dungeon_set_fov() {
   int i, j;
+  fov_map = TCOD_map_new(MAX_WIDTH, MAX_HEIGHT);
   for (i = DUNGEON_Y; i < DUNGEON_Y+CURRENT_HEIGHT; i++)
     for (j = DUNGEON_X; j < DUNGEON_X+CURRENT_WIDTH; j++)
       TCOD_map_set_properties(fov_map, j, i,
@@ -132,15 +206,24 @@ void dungeon_gen_cave(int goal) {
   CURRENT_HEIGHT = CURRENT_WIDTH = 3;
   DUNGEON_X = x-1, DUNGEON_Y = y-1;
   SET_STAIRS_DOWN(y, x);
-  // set x, y to be in the middle of allocated dungeon
-  // set CURRENT_HEIGHT, CURRENT_WIDTH to be 1
-  // set DUNGEON_X, DUNGEON_Y to be x, y
-  // update these values as you add more open squares
-  // when you hit an edge, shift over the whole dungeon by 128
-  // and update all the variables accordingly
-  // have a macro to copy dungeon blocks when you do the shift
-  // Remember to resize the fov_map too.
+
   while (i < goal) {
+    switch (rand_int(DIR_N, DIR_W)) {
+    case DIR_N:
+      y -= 1;
+      break;
+    case DIR_E:
+      x += 1;
+      break;
+    case DIR_S:
+      y += 1;
+      break;
+    case DIR_W:
+      x -= 1;
+      break;
+    default:
+      break;
+    }
     if (DUNGEON[y][x].type == TILE_WALL) {
       i++;
       resize_x = resize_y = 0;
@@ -156,37 +239,23 @@ void dungeon_gen_cave(int goal) {
       }
       else if (x >= DUNGEON_X + CURRENT_WIDTH - 1)
 	CURRENT_WIDTH += 1;
-      /*
+      
+      /* When we hit an edge, we shift over the whole dungeon by 128
+	 and update all the variables accordingly. */
       resize_x = 128*(DUNGEON_X + CURRENT_WIDTH >= MAX_WIDTH - 1) -
-      128*(DUNGEON_X <= 1);
+	128*(DUNGEON_X <= 1);
       resize_y = 128*(DUNGEON_Y + CURRENT_HEIGHT >= MAX_HEIGHT - 1) -
-      128*(DUNGEON_Y <= 1);
-      if (resize_x || resize_y)
-	dungeon_resize(resize_x, resize_y);
-      if (resize_y < 0)
-	y -= resize_y;
-      if (resize_x < 0)
-      x -= resize_x;*/
+	128*(DUNGEON_Y <= 1);
+      if (resize_x || resize_y) {
+	dungeon_resize(resize_x, resize_y); /* expand dungeon size in memory */
+	if (resize_y < 0)
+	  y += ABS(resize_y);
+	if (resize_x < 0)
+	  x += ABS(resize_x);
+      }
       SET_FLOOR(y, x);
     }
-    switch (rand_int(DIR_N, DIR_W)) {
-    case DIR_N:
-      y -= (y>1);
-      break;
-    case DIR_E:
-      x += (x < MAX_WIDTH-2);
-      break;
-    case DIR_S:
-      y += (y < MAX_HEIGHT-2);
-      break;
-    case DIR_W:
-      x -= (x>1);
-      break;
-    default:
-      break;
-    }
   }
-  SET_FLOOR(y, x);
   player_place(y, x);
 }
 

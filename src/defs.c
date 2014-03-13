@@ -2,6 +2,7 @@
 
 /* Initialize variables */
 int DEPTH = 1;
+int MAX_WIDTH = 128, MAX_HEIGHT = 128;
 int CURRENT_WIDTH = 80, CURRENT_HEIGHT = 50;
 int DUNGEON_X = 0, DUNGEON_Y = 0;
 int INPUT_MODE = INPUT_ACTION;

@@ -32,8 +32,6 @@ int main() {
   do {
     ev = TCOD_sys_wait_for_event(TCOD_EVENT_KEY|TCOD_EVENT_MOUSE_PRESS,
 				 &key,&mouse,1);
-    if (!TCOD_console_is_active())
-      continue;
     next_turn = handle_input(ev, key.vk, key.c, key.lctrl||key.rctrl,
 			     mouse.cx, mouse.cy);
     if (next_turn) { /* if player used up a turn */

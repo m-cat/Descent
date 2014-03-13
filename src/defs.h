@@ -7,8 +7,6 @@
 extern const char *GAME_NAME;
 
 #define FPS 60
-#define MAX_WIDTH 560 /* full allocated space for dungeon */
-#define MAX_HEIGHT 240
 #define CON_WIDTH 80
 #define CON_HEIGHT 50
 #define UI_WIDTH 31
@@ -22,6 +20,8 @@ extern const char *GAME_NAME;
 
 /* Define global variables */
 extern int DEPTH;
+extern int MAX_WIDTH; /* full allocated space for dungeon */
+extern int MAX_HEIGHT;
 extern int CURRENT_WIDTH, CURRENT_HEIGHT;
 extern int DUNGEON_X, DUNGEON_Y;
 extern int TURN_COUNT;

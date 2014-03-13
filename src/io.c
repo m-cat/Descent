@@ -92,13 +92,13 @@ void draw_view(int scr_width, int scr_height) {
 	cprint(drawi, drawj, TCOD_white, TCOD_black, " ");
 	continue;
       }
-      block = &DUNGEON[i][j];
-      assert (block != NULL);
       /* Check if not explored */
-      if (!CHK_EXPLORED(i, j)) {
+      else if (!CHK_EXPLORED(i, j)) {
 	cprint(drawi, drawj, TCOD_white, TCOD_black, " ");
 	continue;
       }
+
+      block = &DUNGEON[i][j];
       /* Check if not visible */
       if (!CHK_VISIBLE(i, j)) {
 	cprint(drawi, drawj, COL_INACTIVE, TCOD_black, "%c", block->ch);
@@ -129,6 +129,7 @@ void draw_view(int scr_width, int scr_height) {
       else
 	cprint(drawi, drawj, COL_ACTIVE, c2, "%c", block->ch);
 
+      /* Set square being examined to yellow and black */
       if (INPUT_MODE == INPUT_LOOK && i == LOOK_Y && j == LOOK_X) {
 	TCOD_console_set_char_foreground(NULL, drawj, drawi, TCOD_black);
 	TCOD_console_set_char_background(NULL, drawj, drawi, TCOD_amber,
@@ -160,6 +161,13 @@ void draw_inventory(int ui_x, int ui_y) {
 void draw_ui(int ui_x, int ui_y) {
   int i, j;
   char **iterator;
+
+  TCOD_console_set_default_foreground(NULL, TCOD_white);
+  TCOD_console_set_default_background(NULL, TCOD_black);
+  /* Clear UI area */
+  for (i = ui_y; i < CON_HEIGHT; i++)
+    for (j = ui_x; j < CON_WIDTH; j++)
+      TCOD_console_print(NULL, j, i, " ");
 
   /* Draw separator and borders */
   for (i = 0; i < CON_HEIGHT; i++)
@@ -216,7 +224,7 @@ void draw_ui(int ui_x, int ui_y) {
 void draw_game() {
   int scr_width = CON_WIDTH-UI_WIDTH;
   int scr_height = CON_HEIGHT;
-  TCOD_console_clear(NULL);
+
   draw_view(scr_width, scr_height);
   draw_ui(scr_width, 0);
   draw_notify(scr_width);

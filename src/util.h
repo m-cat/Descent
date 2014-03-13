@@ -9,6 +9,7 @@
 #define SIGN(n) ((n) ? ((n>0) ? 1 : -1) : 0)
 #define SWAP(a,b) ((a) ^= (b), (b) ^= (a), (a) ^= (b))
 
+char* string_create(int argc, ...);
 void message_add(char *str);
 
 char *strdup (const char *s);

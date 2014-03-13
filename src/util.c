@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include <string.h>
 #include <time.h>
 #include <ctype.h>
@@ -7,10 +8,38 @@
 #include "defs.h"
 #include "util.h"
 
+char* string_create(int argc, ...) {
+  va_list args;
+  int j, len=0, curlen=5;
+  char *str;
+  char *buf = malloc(curlen);
+  va_start(args, argc);
+  for (j = 0; j < argc; j++) {
+    str = va_arg(args, char *);
+    len += strlen(str);
+    if (len >= curlen) {
+      curlen = curlen + 2*len;
+      buf = realloc(buf, curlen);
+    }
+    if (j == 0)
+      strcpy(buf, str);
+    else
+      strcat(buf, str);
+  }
+  va_end(args);
+  return buf;
+}
+
+/* Adds a string to the message list.
+   str must have been malloc'd. */
 void message_add(char *str) {
-  if (TCOD_list_size(message_list) > MESSAGE_LIST_LEN)
-    TCOD_list_remove(message_list, 0);
+  char *first;
   TCOD_list_push(message_list, (const void *)str);
+  if (TCOD_list_size(message_list) > MESSAGE_LIST_LEN) {
+    first = TCOD_list_get(message_list, 0);
+    TCOD_list_remove(message_list, first);
+    free(first);
+  }
 }
 
 char *strdup (const char *s) {

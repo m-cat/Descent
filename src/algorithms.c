@@ -15,7 +15,7 @@
 
 void calc_fov() {
   int i, j;
-  TCOD_map_compute_fov(fov_map, player.x, player.y, FOV_RADIUS, 1, FOV_BASIC);
+  TCOD_map_compute_fov(fov_map, player.x, player.y, FOV_RADIUS, 1, FOV_SHADOW);
   for (i = DUNGEON_Y; i < DUNGEON_Y+CURRENT_HEIGHT; i++)
     for (j = DUNGEON_X; j < DUNGEON_X+CURRENT_WIDTH; j++) {
       TCOD_map_is_in_fov(fov_map, j, i) ? VIS_SET(j, i) : VIS_CLR(j, i);

@@ -23,7 +23,7 @@ void actor_pickup(ACTOR *a, int y, int x, int i) {
 
   /* Add message if visible */
   if (CHK_VISIBLE(y, x)) {
-    message_add("You pick up an item.");
+    message_add(string_create(4, a->name, " pick up a ", item->name, "."));
   }
 
   for (iterator = (ITEM_N**)TCOD_list_begin(*(a->inventory));

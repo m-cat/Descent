@@ -60,6 +60,7 @@ int init_all() {
   fov_map = TCOD_map_new(MAX_WIDTH, MAX_HEIGHT);
   item_type_list = TCOD_list_allocate(100); /* initially allocate space for 100 items */
   message_list = TCOD_list_allocate(MESSAGE_LIST_LEN);
+  TCOD_list_push(message_list, string_create(3,"Welcome to ", GAME_NAME, "!"));
 
   /* Parse config files */
   TCOD_parser_t item_parser = TCOD_parser_new(); /* defined in defs.h */

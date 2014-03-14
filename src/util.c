@@ -8,6 +8,21 @@
 #include "defs.h"
 #include "util.h"
 
+/* Example usage:
+   printf("You see here %s %s!\n", a_or_an(name), name); */
+int _a_or_an(const char *s) {
+  switch (s[0]) {
+  case 'a': case 'e': case 'i': case 'o': case 'u': return 0;
+  default: return 1;
+  }
+}
+
+void capitalize(char *s) {
+  s[0] = toupper(s[0]);
+}
+
+/* Input: arg count, strings to be concatenated.
+   Returns: pointer to string (should be freed) */
 char* string_create(int argc, ...) {
   va_list args;
   int j, len=0, curlen=5;
@@ -30,11 +45,57 @@ char* string_create(int argc, ...) {
   return buf;
 }
 
+char* subject_form(char *article, int num, char *subject) {
+  char *art;
+  char *plur;
+  char *ret;
+
+  if (strcmp(article, "you") == 0)
+    return string_create(1, "you"); /* return a malloc'd string */
+
+  if (num == 1)
+    art = article;
+  else {
+    art = malloc(16);
+    itoa(art, num, 10);
+  }
+  plur = (num > 1) ? "s" : "";
+
+  if (strcmp(art, "") == 0)
+    ret = string_create(2, subject, plur);
+  else
+    ret = string_create(4, art, " ", subject, plur);
+
+  if (num != 1)
+    free(art);
+  return ret;
+}
+
+char* sentence_form(char *article1, int num1, char *subject, char *verb_sing,
+		    char *verb_plur, char *article2, int num2, char *object) {
+  char *art1, *art2;
+  char *ret;
+
+  art1 = subject_form(article1, num1, subject);
+  art2 = subject_form(article2, num2, object);
+
+  if (strcmp(article1, "you") == 0 || num1 > 1)
+    ret = string_create(5, art1, " ", verb_plur, " ", art2);
+  else
+    ret = string_create(5, art1, " ", verb_sing, " ", art2);
+
+  free(art1);
+  free(art2);
+  capitalize(ret);
+  return ret;
+}
+
 /* Adds a string to the message list.
    str must have been malloc'd. */
 void message_add(char *str) {
   char *first;
-  TCOD_list_push(message_list, (const void *)str);
+  TCOD_list_push(message_list, (const void *)string_create(2,str,"."));
+  free(str);
   if (TCOD_list_size(message_list) > MESSAGE_LIST_LEN) {
     first = TCOD_list_get(message_list, 0);
     TCOD_list_remove(message_list, first);
@@ -42,6 +103,7 @@ void message_add(char *str) {
   }
 }
 
+/* Got this from stack overflow */
 char *strdup (const char *s) {
     char *d = malloc (strlen (s) + 1);   // Space for length plus nul
     if (d == NULL) return NULL;          // No memory
@@ -51,11 +113,11 @@ char *strdup (const char *s) {
 
 /* Returns random integer in [a, b] */
 int rand_int(int a, int b) {
-  return TCOD_random_get_int(NULL, a, b);
+  return TCOD_random_get_int(NULL, MIN(a,b), MAX(a,b));
 }
 
 double rand_float(double a, double b) {
-  return TCOD_random_get_double(NULL, a, b);
+  return TCOD_random_get_double(NULL, MIN(a,b), MAX(a,b));
 }
 
 int intlen(int a) {
@@ -64,18 +126,30 @@ int intlen(int a) {
   return i;
 }
 
-/* Example usage:
-   printf("You see here %s %s!\n", a_or_an(name), name); */
-int _a_or_an(const char *s) {
-  switch (s[0]) {
-  case 'a': case 'e': case 'i': case 'o': case 'u': return 0;
-  default: return 1;
+/* Converts an integer input to its representation in the provided base.
+   Assumes positive input and base <= 16. */
+int itoa(char *buffer, long i, int base) {
+  char *hex_chars = "0123456789abcdef";
+  char result[16];
+  char result2[16] = "";
+
+  if (i == 0) {
+    strcpy(buffer, "0");
+    return 0;
   }
+
+  while (i > 0) {
+    strncpy(result, hex_chars + (i%base), 1);
+    result[1] = '\0';
+    strcat(result, result2);
+    strcpy(result2, result);
+    i /= base;
+  }
+
+  strcpy(buffer, result);
+  return 0;
 }
 
-void capitalize(char *s) {
-  s[0] = toupper(s[0]);
-}
 
 /* Builds up a name from pre-defined sequences of letters.
    Highly configurable in terms of which sequences are possible.

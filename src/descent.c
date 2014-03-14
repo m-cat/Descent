@@ -4,6 +4,7 @@
 #include "defs.h"
 #include "util.h"
 #include "dungeon.h"
+#include "actor.h"
 #include "player.h"
 #include "algorithms.h"
 #include "io.h"
@@ -40,7 +41,7 @@ int main() {
       calc_fov();
     }
     draw_game();
-  } while (key.c != 'q');
+  } while (!TCOD_console_is_window_closed() && key.c != 'q');
 
   exit(1);
 }

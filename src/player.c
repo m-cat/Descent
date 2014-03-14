@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include <libtcod.h>
 #include "defs.h"
 #include "items.h"
@@ -8,10 +9,19 @@ ACTOR player;
 
 
 void player_place(int y, int x) {
+  /* Initialize the player */
+  player.type = ACTOR_PLAYER;
+  player.ch = '@';
+  player.art = "you";
+
   player.x = x;
   player.y = y;
   CAMERA_X = player.x, CAMERA_Y = player.y;
   LOOK_X = player.x, LOOK_Y = player.y;
+
+  player.inventory = malloc(sizeof(TCOD_list_t));
+  *(player.inventory) = TCOD_list_allocate(100);
+
   DUNGEON[player.y][player.x].resident = &player;
 }
 
@@ -119,7 +129,8 @@ int handle_input(TCOD_event_t ev, TCOD_keycode_t key, char ch, int ctrl,
     break;
   case TCODK_CHAR:
     switch (ch) {
-    case '.': /* pickup item */
+    case 'g': /* pickup item */
+    case ',':
       if (INPUT_MODE == INPUT_ACTION) {
 	if (item_get_top(player.y, player.x) != NULL) {
 	  actor_pickup(&player, player.y, player.x, -1);

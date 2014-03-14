@@ -4,9 +4,11 @@
 
 Descent is a work-in-progress [roguelike](http://en.wikipedia.org/wiki/Roguelike) game. It will differ from most convential roguelikes by foregoing archaic and dated gameplay and instead offering an intuitive and user-friendly experience.
 
-##Current State (3-13-2014)
+##Current State (3-14-2014)
 
-Added dynamic resizing to the dungeons. Worked on making messages a little nicer.
+Took block information out into a config file.
+Made some performance enhancements.
+Messed around with the colors of visible and nonvisible areas.
 
 ###To Do
 
@@ -16,12 +18,12 @@ Added dynamic resizing to the dungeons. Worked on making messages a little nicer
 
 - Add dungeon generation
 
+- Add river & lake generation (using heightmaps)
+
 - Continue work on the menu and UI
 
 ####Misc
 
-- Make fov faster (don't check visibility status for every tile in current dungeon)
-
-- Make messages look nicer, add support for multi-line messages.
+- Add support for multi-line messages.
 
 - Implement scrolling through items in the inventory and picking up specific items from the ground.

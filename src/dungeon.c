@@ -1,32 +1,50 @@
 #include <stdlib.h>
+#include <string.h>
 #include <assert.h>
+#include <libtcod.h>
 #include "defs.h"
 #include "util.h"
 #include "items.h"
 #include "player.h"
 #include "dungeon.h"
 
+/* Use this to make a copy of the block's resources.
+   Usually doing dest = source is fine, though. */
+void block_copy(DUNGEON_BLOCK *dest, DUNGEON_BLOCK *source) {
+  float h, s, v;
+  dest->name = strdup(source->name);
+  dest->art = strdup(source->art);
+  dest->type = source->type;
+  dest->ch = source->ch;
+  TCOD_color_get_HSV(source->col_vis, &h, &s, &v);
+  TCOD_color_set_HSV(&(dest->col_vis), h, s, v);
+  TCOD_color_get_HSV(source->col_nonvis, &h, &s, &v);
+  TCOD_color_set_HSV(&(dest->col_nonvis), h, s, v);
+  dest->TRANSPARENT = source->TRANSPARENT;
+  dest->PASSABLE = source->PASSABLE;
+}
+
+void block_create(int y, int x, char *name) {
+  DUNGEON_BLOCK **iterator;
+  for (iterator = (DUNGEON_BLOCK**)TCOD_list_begin(block_type_list);
+       iterator != (DUNGEON_BLOCK**)TCOD_list_end(block_type_list);
+       iterator++) {
+    if (strcmp(name, (*iterator)->name) == 0) {
+      DUNGEON[y][x] = (**iterator);
+      return;
+    }
+  }
+}
+
+/* Due to how frequently walls and floors are, placed, it's
+   prudent to circumvent the inefficient block_create() function. */
 void SET_WALL(int y, int x) {
-  DUNGEON[y][x].type = TILE_WALL;
-  DUNGEON[y][x].ch = '#';
-  DUNGEON[y][x].name = "wall";
-  SET_TRANSPARENT(y, x, 0);
-  SET_PASSABLE(y, x, 0);
+  DUNGEON[y][x] = block_wall;
 }
 void SET_FLOOR(int y, int x) {
-  DUNGEON[y][x].type = TILE_FLOOR;
-  DUNGEON[y][x].ch = '.';
-  DUNGEON[y][x].name = "floor";
-  SET_TRANSPARENT(y, x, 1);
-  SET_PASSABLE(y, x, 1);
+  DUNGEON[y][x] = block_floor;
 }
-void SET_STAIRS_DOWN(int y, int x) {
-  DUNGEON[y][x].type = TILE_STAIRS_DOWN;
-  DUNGEON[y][x].ch = '>';
-  DUNGEON[y][x].name = "downward staircase";
-  SET_TRANSPARENT(y, x, 1);
-  SET_PASSABLE(y, x, 1);
-}
+
 void CLR_OPTS(int y, int x) {
   DUNGEON[y][x].PASSABLE = 0;
   DUNGEON[y][x].TRANSPARENT = 0;
@@ -39,6 +57,8 @@ void CLR_BLOCK(int y, int x) {
 
   assert(block != NULL);
   CLR_OPTS(y, x);
+  block->name = NULL;
+  block->art = NULL;
   block->resident = NULL; /* Don't free the resident here;
 			     we do it in dungeon_clear(). */
   if (block->furn != NULL) {
@@ -205,7 +225,7 @@ void dungeon_gen_cave(int goal) {
   int i = 1, x=MAX_WIDTH/2, y=MAX_HEIGHT/2, resize_x, resize_y;
   CURRENT_HEIGHT = CURRENT_WIDTH = 3;
   DUNGEON_X = x-1, DUNGEON_Y = y-1;
-  SET_STAIRS_DOWN(y, x);
+  block_create(y, x, "downward staircase");
 
   while (i < goal) {
     switch (rand_int(DIR_N, DIR_W)) {
@@ -259,6 +279,20 @@ void dungeon_gen_cave(int goal) {
   player_place(y, x);
 }
 
+typedef struct {
+  int x1, x2;
+  int y1, y2;
+  enum DIRECTION dir;
+} DUNGEON_WALL;
+
+void dungeon_gen_reg(int rm_size_min, int rm_size_max) {
+  TCOD_list_t wall_list = TCOD_list_allocate(100);
+
+  
+
+  TCOD_list_delete(wall_list);
+}
+
 void dungeon_place_items() {
   /* Place items */
   int i = 12, x, y;
@@ -281,7 +315,7 @@ void dungeon_gen(enum DUNGEON_TYPE type) {
     player_place(3, 3);
     break;
   case DUNGEON_CAVE:
-    dungeon_gen_cave(1000);
+    dungeon_gen_cave(10000);
     break;
   case DUNGEON_REGULAR:
     //dungeon_gen_reg();

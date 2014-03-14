@@ -28,9 +28,10 @@ void draw_notify(int scr_width) {
   ACTOR *a;
   FURN *furn;
   TCOD_list_t *stash;
-  ITEM *item;
+  ITEM_N *item_n = NULL;
   enum TILE_TYPE type;
   int j;
+  char *sentence, *subject;
 
   for (j = 0; j < scr_width; j++)
     cprint(0, j, TCOD_white, TCOD_black, " ");
@@ -38,14 +39,19 @@ void draw_notify(int scr_width) {
   switch (INPUT_MODE) {
   case INPUT_ACTION:
     stash = DUNGEON[player.y][player.x].stash;
-    item = item_get_top(player.y, player.x);
-    if (stash != NULL && item != NULL) {
-      cprint(0, OFFSET_NOT, TCOD_white, TCOD_black, "There's %s %s at your feet. %s",
-	     a_or_an(item->name), item->name,
-	     (TCOD_list_size(*stash) > 1) ? "(more) " : "");
+    if (stash != NULL) {
+      item_n = TCOD_list_peek(*stash);
+      if (item_n != NULL) {
+	subject = subject_form(item_n->item->art, item_n->n,
+			       item_n->item->name);
+	sentence = string_create(2, (item_n->n == 1) ?
+				 "There's " : "There are ", subject);
+	cprint(0, OFFSET_NOT, TCOD_white, TCOD_black, "%s at your feet. %s",
+	       sentence, (TCOD_list_size(*stash) > 1) ? "(more) " : "");
+	free(subject);
+	free(sentence);
+      }
     }
-    cprint_right(0, CON_WIDTH-UI_WIDTH-2, TCOD_white, TCOD_black, "Turn: %d",
-		 TURN_COUNT+1);
     break;
   case INPUT_SCROLL:
     cprint(0, OFFSET_NOT, TCOD_white, TCOD_black, "Scrolling...");
@@ -55,19 +61,28 @@ void draw_notify(int scr_width) {
     a = block->resident;
     furn = block->furn;
     type = block->type;
-    item = item_get_top(LOOK_Y, LOOK_X);
-    if (a != NULL)
-      cprint(0, OFFSET_NOT, TCOD_white, TCOD_black, "You see %s %s.",
-	     a_or_an(a->name), a->name);
-    else if (furn != NULL)
-      cprint(0, OFFSET_NOT, TCOD_white, TCOD_black, "You see %s %s.",
-	     a_or_an(furn->name), furn->name);
-    else if (item != NULL)
-      cprint(0, OFFSET_NOT, TCOD_white, TCOD_black, "You see %s %s.",
-	     a_or_an(item->name), item->name);
-    else
-      cprint(0, OFFSET_NOT, TCOD_white, TCOD_black, "You see %s %s.",
-	     a_or_an(block->name), block->name);
+    if (block->stash != NULL)
+      item_n = TCOD_list_peek(*(block->stash));
+    if (a != NULL) {
+      subject = subject_form(a->art, 1, a->name);
+      cprint(0, OFFSET_NOT, TCOD_white, TCOD_black, "You see %s.", subject);
+      free(subject);
+    }
+    else if (furn != NULL) {
+      subject = subject_form(furn->art, 1, furn->name);
+      cprint(0, OFFSET_NOT, TCOD_white, TCOD_black, "You see %s.", subject);
+      free(subject);
+    }
+    else if (item_n != NULL) {
+      subject = subject_form(item_n->item->art, item_n->n, item_n->item->name);
+      cprint(0, OFFSET_NOT, TCOD_white, TCOD_black, "You see %s.", subject);
+      free(subject);
+    }
+    else {
+      subject = subject_form(block->art, 1, block->name);
+      cprint(0, OFFSET_NOT, TCOD_white, TCOD_black, "You see %s.", subject);
+      free(subject);
+    }
     break;
   default:
     break;
@@ -101,7 +116,7 @@ void draw_view(int scr_width, int scr_height) {
       block = &DUNGEON[i][j];
       /* Check if not visible */
       if (!CHK_VISIBLE(i, j)) {
-	cprint(drawi, drawj, COL_INACTIVE, TCOD_black, "%c", block->ch);
+	cprint(drawi, drawj, block->col_nonvis, TCOD_black, "%c", block->ch);
 	continue;
       }
       /* Draw the contents of the block
@@ -119,15 +134,11 @@ void draw_view(int scr_width, int scr_height) {
       if (a != NULL)
 	cprint(drawi, drawj, get_actor_color(a), c2, "%c", a->ch);
       else if (furn != NULL)
-	cprint(drawi, drawj, TCOD_yellow, c2, "%c", furn->ch);
+	cprint(drawi, drawj, furn->col, c2, "%c", furn->ch);
       else if (item != NULL)
 	cprint(drawi, drawj, item->col, c2, "%c", item->ch);
-      else if (block->type == TILE_WATER)
-	cprint(drawi, drawj, TCOD_blue, c2, "~");
-      else if (block->type == TILE_LAVA)
-	cprint(drawi, drawj, TCOD_red, c2, "~");
       else
-	cprint(drawi, drawj, COL_ACTIVE, c2, "%c", block->ch);
+	cprint(drawi, drawj, block->col_vis, c2, "%c", block->ch);
 
       /* Set square being examined to yellow and black */
       if (INPUT_MODE == INPUT_LOOK && i == LOOK_Y && j == LOOK_X) {
@@ -143,17 +154,20 @@ void draw_inventory(int ui_x, int ui_y) {
   int i;
 
   cprint_center(ui_y+1, ui_x+UI_WIDTH/2+1, TCOD_white, TCOD_black,
+		"Inventory");
+
+  cprint_center(ui_y+3, ui_x+UI_WIDTH/2+1, TCOD_white, TCOD_black,
 		"Examine | Use | Drop");
-  cprint_center(ui_y+2, ui_x+UI_WIDTH/2+1, TCOD_white, TCOD_black,
+  cprint_center(ui_y+4, ui_x+UI_WIDTH/2+1, TCOD_white, TCOD_black,
 		"Wield | Wear");
 
   for (iterator = (ITEM_N**)TCOD_list_begin(*(player.inventory)), i = 0;
        iterator != (ITEM_N**)TCOD_list_end(*(player.inventory)); iterator++, i++) {
     if ((*iterator)->n > 1)
-      cprint(ui_y+4+i, ui_x+2, TCOD_white, TCOD_black, "%c - %s x%d",
+      cprint(ui_y+6+i, ui_x+2, TCOD_white, TCOD_black, "%c - %s x%d",
 	     'a'+i, (*iterator)->item->name, (*iterator)->n);
     else
-      cprint(ui_y+4+i, ui_x+2, TCOD_white, TCOD_black, "%c - %s",
+      cprint(ui_y+6+i, ui_x+2, TCOD_white, TCOD_black, "%c - %s",
 	     'a'+i, (*iterator)->item->name);
   }
 }
@@ -189,8 +203,11 @@ void draw_ui(int ui_x, int ui_y) {
     cprint(ui_y+4, ui_x+3, TCOD_white, TCOD_black,
 	   "Exp: %d / %d", player.exp, player.level*100);
 
-    /* Draw depth */
-    cprint_right(ui_y+3, CON_WIDTH-3, TCOD_white, TCOD_black, "Depth: %d", DEPTH);
+    /* Draw depth and turn*/
+    cprint_right(ui_y+3, CON_WIDTH-3, TCOD_white, TCOD_black,
+		 "Depth: %d", DEPTH);
+    cprint_right(ui_y+4, CON_WIDTH-3, TCOD_white, TCOD_black,
+		 "Turn: %d", TURN_COUNT+1);
 
     /* Draw hp and mp */
 #define OFFSET_HP 7
@@ -210,8 +227,8 @@ void draw_ui(int ui_x, int ui_y) {
 
     /* Draw messages */
 #define OFFSET_MSG 12
-    for (j = ui_x; j < CON_WIDTH; j++)
-      cprint(CON_HEIGHT-OFFSET_MSG, j, TCOD_black, TCOD_white, " ");
+    for (j = ui_x+1; j < CON_WIDTH; j++)
+      cprint(CON_HEIGHT-OFFSET_MSG, j, TCOD_white, TCOD_black, "~");
     for (iterator = (char**)TCOD_list_end(message_list)-1, i = CON_HEIGHT-2;
 	 i > CON_HEIGHT-OFFSET_MSG+1 && iterator != (char**)TCOD_list_begin(message_list)-1;
 	 iterator--, i--) {

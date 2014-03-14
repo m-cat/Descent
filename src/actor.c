@@ -3,11 +3,28 @@
 #include "defs.h"
 #include "items.h"
 #include "util.h"
+#include "priority.h"
 #include "actor.h"
 
-int can_move(ACTOR *a, int dy, int dx) {
-  return CHK_PASSABLE(a->y+dy, a->x+dx);
+/* Advances a turn for ALL actors apart from player. */
+void advance_turn() {
+  ACTOR *a;
+  int pri;
+  while ((a = priq_pop(enemy_queue, &pri))) {
+    /* Take out actor from the queue, act, put it in a temp queue */
+    actor_act(a);
+    priq_push(temp_queue, a, pri);
+  }
+  /* Put all actors in the temp queue back into the main queue */
+  priq_combine(enemy_queue, temp_queue);
 }
+
+int can_move(ACTOR *a, int dy, int dx) {
+  int x = a->x+dx, y = a->y+dy;
+  FURN *furn = DUNGEON[y][x].furn;
+  return ((furn != NULL && furn->type == FURN_BRIDGE) || CHK_PASSABLE(y, x));
+}
+
 void actor_move(ACTOR *a, int dy, int dx) {
   DUNGEON[a->y][a->x].resident = NULL;
   a->y += dy;
@@ -23,7 +40,8 @@ void actor_pickup(ACTOR *a, int y, int x, int i) {
 
   /* Add message if visible */
   if (CHK_VISIBLE(y, x)) {
-    message_add(string_create(4, a->name, " pick up a ", item->name, "."));
+    message_add(sentence_form(a->art, 1, a->name, "picks up", "pick up",
+			      item->art, 1, item->name));
   }
 
   for (iterator = (ITEM_N**)TCOD_list_begin(*(a->inventory));
@@ -63,4 +81,8 @@ void actor_drop(ACTOR *a, int y, int x, int i) {
     item_n->n --;
   }
   item_drop(y, x, item);
+}
+
+void actor_act(ACTOR *a) {
+  ;
 }

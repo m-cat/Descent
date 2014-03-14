@@ -27,7 +27,7 @@ enum MENU_SCREEN {
 
 void draw_menu(enum MENU_SCREEN menu) {
   char *str, *temp;
-  int cur_len, max_len, x;
+  int cur_len, max_len;
   TCOD_key_t key;
   switch (menu) {
   case MENU_MAIN:
@@ -37,16 +37,20 @@ void draw_menu(enum MENU_SCREEN menu) {
     TCOD_console_flush();
     break;
   case MENU_NAME:
+#define OFFSET_NAME_X 2
+#define OFFSET_NAME_Y 3
     cur_len = 0, max_len = MAX_NAME_LEN;
-    x = strlen("Enter your name: ") + 1;
     str = calloc(max_len+1, 1);
 
     do {
       TCOD_console_clear(NULL);
-      cprint(1, x, TCOD_white, TCOD_black, "%s_", str);
-      cprint(1, x+max_len-1, TCOD_white, TCOD_black, " "); /* erase '_' if at end */
-      cprint(1, 1, TCOD_white, TCOD_black, "Enter your name: ");
-      cprint(3, 1, TCOD_white, TCOD_black, "Press space for a random name.");
+      cprint(OFFSET_NAME_Y, OFFSET_NAME_X, TCOD_white, TCOD_black,
+	     "> %s_", str);
+      cprint(OFFSET_NAME_Y, OFFSET_NAME_X+max_len+1, TCOD_white, TCOD_black,
+	     " "); /* erase '_' if at end */
+      cprint(1, 1, TCOD_white, TCOD_black,
+	     "Welcome, adventurer! What is your name?");
+      cprint(5, 1, TCOD_white, TCOD_black, "Press space for a random name.");
       TCOD_console_flush();
 
       TCOD_sys_wait_for_event(TCOD_EVENT_KEY_PRESS,&key,NULL,1);

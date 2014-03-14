@@ -9,6 +9,7 @@
 void item_copy(ITEM *dest, ITEM *source) {
   float h, s, v;
   dest->name = strdup(source->name);
+  dest->art = strdup(source->art);
   dest->type = source->type;
   dest->ch = source->ch;
   TCOD_color_get_HSV(source->col, &h, &s, &v);
@@ -100,5 +101,6 @@ void item_delete(ITEM *item) {
   assert (item != NULL);
   assert (item->name != NULL);
   free(item->name);
+  free(item->art);
   free(item);
 }

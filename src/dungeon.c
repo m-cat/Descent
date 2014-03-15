@@ -295,7 +295,8 @@ void dungeon_place_items() {
       y = rand_int(DUNGEON_Y+1, DUNGEON_Y+CURRENT_HEIGHT-1);
     } while (DUNGEON[y][x].type != TILE_FLOOR);
     item_place(y, x, rand_int(0,1) ? "diamond" : "apple");
-    }  
+  }
+  item_place(y, x, "pickax");
 }
 
 void dungeon_place_enemies() {

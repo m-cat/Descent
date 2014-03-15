@@ -19,11 +19,20 @@ void handle_scroll(int dy, int dx) {
   CAMERA_Y += dy;
   CAMERA_X += dx;
 }
+
 void handle_look(int dy, int dx) {
   if (CHK_VISIBLE(LOOK_Y+dy, LOOK_X+dx)) {
     LOOK_Y += dy;
     LOOK_X += dx;
   }
+}
+
+void handle_inv(int dy, int dx) {
+  INV_POS += dy;
+  if (INV_POS < 0)
+    INV_POS = TCOD_list_size(*(player->inventory))-1;
+  else if (INV_POS >= TCOD_list_size(*(player->inventory)))
+    INV_POS = 0;
 }
 
 /* Possible modes:
@@ -37,11 +46,12 @@ void handle_look(int dy, int dx) {
   ((INPUT_MODE==INPUT_ACTION) ? move_if_can(player, dy, dx) :		\
    ((INPUT_MODE==INPUT_SCROLL) ? (handle_scroll(dy, dx), 0) :		\
     ((INPUT_MODE==INPUT_LOOK) ? (handle_look(dy, dx), 0) :		\
-     0)))
+     ((INPUT_MODE==INPUT_INVENTORY) ? handle_inv(dy, dx), 0 :		\
+      0))))
 
 int handle_input(TCOD_event_t ev, TCOD_keycode_t key, char ch, int ctrl,
 		 int m_x, int m_y) {
-  int ret = 0;
+  int ret = 0, i;
 
   /* Change input modes */
   if ((INPUT_MODE == INPUT_ACTION) && ctrl)
@@ -126,20 +136,42 @@ int handle_input(TCOD_event_t ev, TCOD_keycode_t key, char ch, int ctrl,
     TURN_COUNT++;
     break;
   case TCODK_CHAR:
+    if (INPUT_MODE == INPUT_INVENTORY) {
+      i = ch-'a';
+      if (i >= 0 && i < TCOD_list_size(*(player->inventory)))
+	INV_POS = i;
+    }
     switch (ch) {
     case 'g': /* pickup item */
     case ',':
       if (INPUT_MODE == INPUT_ACTION) {
 	if (item_get_top(player->y, player->x) != NULL) {
-	  actor_pickup(player, player->y, player->x, -1);
+	  actor_pickup(player, -1);
 	  ret = 1;
 	}
       }
       break;
-    case 'd': /* drop item */
+    case 'd':
+      if (INPUT_MODE == INPUT_INVENTORY) /* don't drop with 'd' in inventory */
+	break;
+    case 'D': /* drop item */
       if (INPUT_MODE == INPUT_ACTION) {
 	if (TCOD_list_size(*(player->inventory)) > 0) {
-	  actor_drop(player, player->y, player->x, -1);
+	  actor_drop(player, -1);
+	  ret = 1;
+	}
+      }
+      else if (INPUT_MODE == INPUT_INVENTORY) {
+	if (TCOD_list_size(*(player->inventory)) > INV_POS) {
+	  actor_drop(player, INV_POS);
+	  ret = 1;
+	}
+      }
+      break;
+    case 'w': /* wield item */
+      if (INPUT_MODE == INPUT_INVENTORY) {
+	if (TCOD_list_size(*(player->inventory)) > INV_POS) {
+	  actor_wield(player, INV_POS);
 	  ret = 1;
 	}
       }

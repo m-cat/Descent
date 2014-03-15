@@ -25,21 +25,19 @@ void capitalize(char *s) {
    Returns: pointer to string (should be freed) */
 char* string_create(int argc, ...) {
   va_list args;
-  int j, len=0, curlen=5;
-  char *str;
-  char *buf = malloc(curlen);
+  int j, len=0;
+  char *buf;
+
+  va_start(args, argc);
+  for (j = 0; j < argc; j++)
+    len += strlen(va_arg(args, char*));
+  va_end(args);
+
+  buf = malloc(len+1);
   va_start(args, argc);
   for (j = 0; j < argc; j++) {
-    str = va_arg(args, char *);
-    len += strlen(str);
-    if (len >= curlen) {
-      curlen = curlen + 2*len;
-      buf = realloc(buf, curlen);
-    }
-    if (j == 0)
-      strcpy(buf, str);
-    else
-      strcat(buf, str);
+    (j == 0) ? strcpy(buf, va_arg(args, char*)) :
+      strcat(buf, va_arg(args, char*));
   }
   va_end(args);
   return buf;

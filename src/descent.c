@@ -37,7 +37,7 @@ int main() {
 			     mouse.cx, mouse.cy);
     if (next_turn) { /* if player used up a turn */
       TURN_COUNT++;
-      //advance_turn();
+      advance_turn();
       calc_fov();
     }
     draw_game();

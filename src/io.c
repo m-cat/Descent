@@ -142,23 +142,32 @@ void draw_view(int scr_width, int scr_height) {
 void draw_inventory(int ui_x, int ui_y) {
   ITEM_N **iterator;
   int i;
+  TCOD_color_t c;
+  char *subject;
 
   cprint_center(ui_y+1, ui_x+UI_WIDTH/2+1, TCOD_white, TCOD_black,
 		"Inventory");
 
+  TCOD_console_set_color_control(TCOD_COLCTRL_1, TCOD_sea, TCOD_black);
   cprint_center(ui_y+3, ui_x+UI_WIDTH/2+1, TCOD_white, TCOD_black,
-		"Examine | Use | Drop");
+		"e%cx%camine | %cu%cse | %cD%crop",
+		TCOD_COLCTRL_1, TCOD_COLCTRL_STOP, TCOD_COLCTRL_1,
+		TCOD_COLCTRL_STOP, TCOD_COLCTRL_1, TCOD_COLCTRL_STOP);
   cprint_center(ui_y+4, ui_x+UI_WIDTH/2+1, TCOD_white, TCOD_black,
-		"Wield | Wear");
+		"%cw%cield | %cW%cear",
+		TCOD_COLCTRL_1, TCOD_COLCTRL_STOP, TCOD_COLCTRL_1,
+		TCOD_COLCTRL_STOP);
 
+  if (INV_POS >= TCOD_list_size(*(player->inventory)))
+    INV_POS = MAX(0, TCOD_list_size(*(player->inventory))-1);
   for (iterator = (ITEM_N**)TCOD_list_begin(*(player->inventory)), i = 0;
-       iterator != (ITEM_N**)TCOD_list_end(*(player->inventory)); iterator++, i++) {
-    if ((*iterator)->n > 1)
-      cprint(ui_y+6+i, ui_x+2, TCOD_white, TCOD_black, "%c - %s x%d",
-	     'a'+i, (*iterator)->item->name, (*iterator)->n);
-    else
-      cprint(ui_y+6+i, ui_x+2, TCOD_white, TCOD_black, "%c - %s",
-	     'a'+i, (*iterator)->item->name);
+       iterator != (ITEM_N**)TCOD_list_end(*(player->inventory));
+       iterator++, i++) {
+    c = (i == INV_POS) ? TCOD_azure : TCOD_black;
+    subject = subject_form((*iterator)->item->art, (*iterator)->n,
+			   (*iterator)->item->name);
+    cprint(ui_y+6+i, ui_x+2, TCOD_white, c, "%c - %s", 'a'+i, subject);
+    free(subject);
   }
 }
 
@@ -166,6 +175,8 @@ void draw_ui(int ui_x, int ui_y) {
   int i, j;
   char **iterator;
   int *iterator2;
+  char *subject;
+  TCOD_color_t c;
 
   TCOD_console_set_default_foreground(NULL, TCOD_white);
   TCOD_console_set_default_background(NULL, TCOD_black);
@@ -202,14 +213,14 @@ void draw_ui(int ui_x, int ui_y) {
 
     /* Draw hp and mp */
 #define OFFSET_HP 7
-    cprint(ui_y+OFFSET_HP, ui_x+10, TCOD_white, TCOD_black,
+    cprint(ui_y+OFFSET_HP, ui_x+8, TCOD_white, TCOD_black,
 	   "%d / %d", player->hp_cur, player->hp_max);
     cprint(ui_y+OFFSET_HP+1, ui_x+3, TCOD_white, TCOD_black, "HP: [");
     for (j = ui_x+8; j < CON_WIDTH-3; j++)
       cprint(ui_y+OFFSET_HP+1, j, TCOD_flame, TCOD_black, "=");
     cprint(ui_y+OFFSET_HP+1, CON_WIDTH-3, TCOD_white, TCOD_black, "]");
 
-    cprint(ui_y+OFFSET_HP+3, ui_x+10, TCOD_white, TCOD_black,
+    cprint(ui_y+OFFSET_HP+3, ui_x+8, TCOD_white, TCOD_black,
 	   "%d / %d", player->mp_cur, player->mp_max);
     cprint(ui_y+OFFSET_HP+4, ui_x+3, TCOD_white, TCOD_black, "MP: [");
     for (j = ui_x+8; j < CON_WIDTH-3; j++)
@@ -217,6 +228,18 @@ void draw_ui(int ui_x, int ui_y) {
     cprint(ui_y+OFFSET_HP+4, CON_WIDTH-3, TCOD_white, TCOD_black, "]");
 
     /* Draw weapon name */
+#define OFFSET_WEP 14
+    if (player->weapon == NULL) {
+      subject = string_create(1,"none");
+      c = TCOD_grey;
+    }
+    else {
+      subject = subject_form(player->weapon->art, 1, player->weapon->name);
+      c = player->weapon->col;
+    }
+    cprint(ui_y+OFFSET_WEP, ui_x+3, TCOD_white, TCOD_black, "Weapon:");
+    cprint(ui_y+OFFSET_WEP, ui_x+11, c, TCOD_black, "%s", subject);
+    free(subject);
 
     /* Draw messages */
 #define OFFSET_MSG 12

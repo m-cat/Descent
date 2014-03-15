@@ -53,17 +53,10 @@ void actor_move(ACTOR *a, int dy, int dx) {
   DUNGEON[a->y][a->x].resident = a;
 }
 
-/* Picks up the i'th item in the stash located at the given coordinates */
-void actor_pickup(ACTOR *a, int y, int x, int i) {
+/* Adds item to the actor's inventory */
+void actor_add_item(ACTOR *a, ITEM *item) {
   ITEM_N **iterator;
   ITEM_N *item_n;
-  ITEM *item = item_pickup(y, x, i);
-
-  /* Add message if visible */
-  if (CHK_VISIBLE(y, x)) {
-    message_add(sentence_form(a->art, 1, a->name, "picks up", "pick up",
-			      item->art, 1, item->name), ".");
-  }
 
   for (iterator = (ITEM_N**)TCOD_list_begin(*(a->inventory));
        iterator != (ITEM_N**)TCOD_list_end(*(a->inventory)); iterator++) {
@@ -78,11 +71,11 @@ void actor_pickup(ACTOR *a, int y, int x, int i) {
   item_n = malloc(sizeof(ITEM_N));
   item_n->item = item;
   item_n->n = 1;
-  TCOD_list_push(*(a->inventory), (const void *)item_n);
+  TCOD_list_push(*(a->inventory), (const void *)item_n);  
 }
 
-/* Drops the i'th item in the actor's inventory */
-void actor_drop(ACTOR *a, int y, int x, int i) {
+/* Removes the i'th item from the actor's inventory, returning it */
+ITEM* actor_get_item_i(ACTOR *a, int i) {
   ITEM_N *item_n;
   ITEM *item;
 
@@ -101,9 +94,57 @@ void actor_drop(ACTOR *a, int y, int x, int i) {
     item_copy(item, item_n->item);
     item_n->n --;
   }
-  item_drop(y, x, item);
+
+  return item;
+}
+
+/* Picks up the i'th item in the stash */
+void actor_pickup(ACTOR *a, int i) {
+  ITEM *item = item_pickup(a->y, a->x, i);
+
+  /* Add message if visible */
+  if (CHK_VISIBLE(a->y, a->x)) {
+    message_add(sentence_form(a->art, 1, a->name, "picks up", "pick up",
+			      item->art, 1, item->name), ".");
+  }
+
+  actor_add_item(a, item);
+}
+
+/* Drops the i'th item in the actor's inventory */
+void actor_drop(ACTOR *a, int i) {
+  ITEM *item = actor_get_item_i(a, i);
+ 
+  /* Add message if visible */
+  if (CHK_VISIBLE(a->y, a->x)) {
+    message_add(sentence_form(a->art, 1, a->name, "drops", "drop",
+			      item->art, 1, item->name), ".");
+  }
+
+  item_drop(a->y, a->x, item);
+}
+
+/* Wields the i'th item in the actor's inventory */
+void actor_wield(ACTOR *a, int i) {
+  ITEM *item;
+
+  item = actor_get_item_i(a, i);
+  if (a->weapon != NULL) {
+    actor_add_item(a, a->weapon);
+  }
+  a->weapon = item;
+  
+  /* Add message if visible */
+  if (CHK_VISIBLE(a->y, a->x)) {
+    message_add(sentence_form(a->art, 1, a->name, "wields", "wield",
+			      item->art, 1, item->name), ".");
+  }
 }
 
 void actor_act(ACTOR *a) {
-  ;
+  int dx, dy;
+  do {
+    dx = rand_int(-1,1), dy = rand_int(-1,1);
+  } while (!can_move(a, dy, dx));
+  actor_move(a, dy, dx);
 }

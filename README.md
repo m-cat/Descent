@@ -4,19 +4,25 @@
 
 Descent is a work-in-progress [roguelike](http://en.wikipedia.org/wiki/Roguelike) game. It will differ from most convential roguelikes by foregoing archaic and dated gameplay and instead offering an intuitive and user-friendly experience.
 
-##Current State (3-14-2014)
+##Current State (3-15-2014)
 
-Took block information out into a config file.
-Made some performance enhancements.
-Messed around with the colors of visible and nonvisible areas.
+Made a lot of progress on the inventory system. You can now scroll through the inventory to drop or wield specific items.
+
+Added a rat as the first enemy. Still need to work on AI.
+
+Nice-looking line-wrapping message system completed.
+
+Some visual improvements were made.
 
 ###To Do
 
 ####General
 
-- Add enemies
+- Equipment screen
 
-- Implement weapon wielding, test with pickax. Have walls drop gems with low chance when mined.
+- Enemy AI
+
+- Have walls drop gems with low chance when mined.
 
 - Add dungeon generation
 
@@ -26,6 +32,10 @@ Messed around with the colors of visible and nonvisible areas.
 
 ####Misc
 
-- Add support for multi-line messages.
+- Implement picking up specific items from the ground.
 
-- Implement scrolling through items in the inventory and picking up specific items from the ground.
+###Credits
+
+All code in "src" folder by Marcin Swieczkowki, except where noted.
+
+Notable exception: priority.* from Rosetta Code.

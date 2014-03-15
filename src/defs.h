@@ -33,6 +33,7 @@ extern int TURN_COUNT;
 extern int INPUT_MODE;
 extern int CAMERA_X, CAMERA_Y;
 extern int LOOK_X, LOOK_Y;
+extern int INV_POS; /* scroll position in inventory */
 
 
 /* Define macros */

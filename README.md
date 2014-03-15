@@ -16,6 +16,8 @@ Messed around with the colors of visible and nonvisible areas.
 
 - Add enemies
 
+- Implement weapon wielding, test with pickax. Have walls drop gems with low chance when mined.
+
 - Add dungeon generation
 
 - Add river & lake generation (using heightmaps)

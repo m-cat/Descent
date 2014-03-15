@@ -5,23 +5,16 @@
 #include "defs.h"
 #include "util.h"
 #include "items.h"
+#include "actor.h"
 #include "player.h"
 #include "dungeon.h"
 
 /* Use this to make a copy of the block's resources.
    Usually doing dest = source is fine, though. */
 void block_copy(DUNGEON_BLOCK *dest, DUNGEON_BLOCK *source) {
-  float h, s, v;
+  *dest = *source;
   dest->name = strdup(source->name);
   dest->art = strdup(source->art);
-  dest->type = source->type;
-  dest->ch = source->ch;
-  TCOD_color_get_HSV(source->col_vis, &h, &s, &v);
-  TCOD_color_set_HSV(&(dest->col_vis), h, s, v);
-  TCOD_color_get_HSV(source->col_nonvis, &h, &s, &v);
-  TCOD_color_set_HSV(&(dest->col_nonvis), h, s, v);
-  dest->TRANSPARENT = source->TRANSPARENT;
-  dest->PASSABLE = source->PASSABLE;
 }
 
 void block_create(int y, int x, char *name) {
@@ -305,6 +298,18 @@ void dungeon_place_items() {
     }  
 }
 
+void dungeon_place_enemies() {
+  /* Place enemies */
+  int i = 1, x, y;
+  while (i --> 0) {
+    do {
+      x = rand_int(DUNGEON_X+1, DUNGEON_X+CURRENT_WIDTH-1);
+      y = rand_int(DUNGEON_Y+1, DUNGEON_Y+CURRENT_HEIGHT-1);
+    } while (DUNGEON[y][x].type != TILE_FLOOR);
+    actor_create(y, x, rand_int(0,1) ? "dungeon rat" : "dungeon rat");
+    }  
+}
+
 void dungeon_gen(enum DUNGEON_TYPE type) {
   dungeon_clear();
   switch (type) {
@@ -315,7 +320,7 @@ void dungeon_gen(enum DUNGEON_TYPE type) {
     player_place(3, 3);
     break;
   case DUNGEON_CAVE:
-    dungeon_gen_cave(10000);
+    dungeon_gen_cave(1000);
     break;
   case DUNGEON_REGULAR:
     //dungeon_gen_reg();
@@ -324,5 +329,6 @@ void dungeon_gen(enum DUNGEON_TYPE type) {
     break;
   }
   dungeon_place_items();
+  dungeon_place_enemies();
   dungeon_set_fov();
 }

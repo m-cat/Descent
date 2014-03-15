@@ -92,14 +92,33 @@ char* sentence_form(char *article1, int num1, char *subject, char *verb_sing,
 
 /* Adds a string to the message list.
    str must have been malloc'd. */
-void message_add(char *str) {
-  char *first;
-  TCOD_list_push(message_list, (const void *)string_create(2,str,"."));
-  free(str);
-  if (TCOD_list_size(message_list) > MESSAGE_LIST_LEN) {
+void message_add(char *str, char *punc) {
+  char *first = str;
+  char *add; /* additional lines */
+  int cutoff;
+  
+#define MAX_LEN (UI_WIDTH-3)
+  while (strlen(str) >= MAX_LEN) {
+    cutoff = MAX_LEN;
+    while (str[cutoff] != ' ')
+      cutoff--;
+    add = malloc(cutoff+1);
+    strncpy(add, str, cutoff);
+    add[cutoff] = 0;
+    TCOD_list_push(message_list, (const void *)add);
+    TCOD_list_push(message_turn_list, (const void *)TURN_COUNT);
+    str += cutoff;
+    str[0] = ' ';
+  }
+  TCOD_list_push(message_list, (const void *)string_create(2,str,punc));
+  TCOD_list_push(message_turn_list, (const void *)TURN_COUNT);
+  free(first);
+
+  while (TCOD_list_size(message_list) > MESSAGE_LIST_LEN) {
     first = TCOD_list_get(message_list, 0);
     TCOD_list_remove(message_list, first);
     free(first);
+    TCOD_list_remove(message_turn_list, TCOD_list_get(message_turn_list, 0));
   }
 }
 

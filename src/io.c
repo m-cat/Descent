@@ -9,19 +9,6 @@
 #include "io.h"
 
 
-TCOD_color_t get_actor_color(ACTOR *a) {
-  switch (a->type) {
-  case ACTOR_PLAYER:
-    return TCOD_white;
-  case ACTOR_ENEMY:
-    return TCOD_red;
-  case ACTOR_NPC:
-    return TCOD_lime;
-  default:
-    return TCOD_white;
-  }
-}
-
 #define OFFSET_NOT 1 /* x-offset for notification message */
 void draw_notify(int scr_width) {
   DUNGEON_BLOCK *block;
@@ -38,7 +25,7 @@ void draw_notify(int scr_width) {
 
   switch (INPUT_MODE) {
   case INPUT_ACTION:
-    stash = DUNGEON[player.y][player.x].stash;
+    stash = DUNGEON[player->y][player->x].stash;
     if (stash != NULL) {
       item_n = TCOD_list_peek(*stash);
       if (item_n != NULL) {
@@ -46,8 +33,10 @@ void draw_notify(int scr_width) {
 			       item_n->item->name);
 	sentence = string_create(2, (item_n->n == 1) ?
 				 "There's " : "There are ", subject);
-	cprint(0, OFFSET_NOT, TCOD_white, TCOD_black, "%s at your feet. %s",
-	       sentence, (TCOD_list_size(*stash) > 1) ? "(more) " : "");
+	cprint(0, OFFSET_NOT, TCOD_white, TCOD_black,
+	       "%s at your feet. %c%c%c%c%s",
+	       sentence, TCOD_COLCTRL_FORE_RGB, 1, 255, 1,
+	       (TCOD_list_size(*stash) > 1) ? "[more] " : "");
 	free(subject);
 	free(sentence);
       }
@@ -114,6 +103,7 @@ void draw_view(int scr_width, int scr_height) {
       }
 
       block = &DUNGEON[i][j];
+      assert(block != NULL);
       /* Check if not visible */
       if (!CHK_VISIBLE(i, j)) {
 	cprint(drawi, drawj, block->col_nonvis, TCOD_black, "%c", block->ch);
@@ -132,7 +122,7 @@ void draw_view(int scr_width, int scr_height) {
       }
 
       if (a != NULL)
-	cprint(drawi, drawj, get_actor_color(a), c2, "%c", a->ch);
+	cprint(drawi, drawj, a->col, c2, "%c", a->ch);
       else if (furn != NULL)
 	cprint(drawi, drawj, furn->col, c2, "%c", furn->ch);
       else if (item != NULL)
@@ -161,8 +151,8 @@ void draw_inventory(int ui_x, int ui_y) {
   cprint_center(ui_y+4, ui_x+UI_WIDTH/2+1, TCOD_white, TCOD_black,
 		"Wield | Wear");
 
-  for (iterator = (ITEM_N**)TCOD_list_begin(*(player.inventory)), i = 0;
-       iterator != (ITEM_N**)TCOD_list_end(*(player.inventory)); iterator++, i++) {
+  for (iterator = (ITEM_N**)TCOD_list_begin(*(player->inventory)), i = 0;
+       iterator != (ITEM_N**)TCOD_list_end(*(player->inventory)); iterator++, i++) {
     if ((*iterator)->n > 1)
       cprint(ui_y+6+i, ui_x+2, TCOD_white, TCOD_black, "%c - %s x%d",
 	     'a'+i, (*iterator)->item->name, (*iterator)->n);
@@ -175,6 +165,7 @@ void draw_inventory(int ui_x, int ui_y) {
 void draw_ui(int ui_x, int ui_y) {
   int i, j;
   char **iterator;
+  int *iterator2;
 
   TCOD_console_set_default_foreground(NULL, TCOD_white);
   TCOD_console_set_default_background(NULL, TCOD_black);
@@ -185,7 +176,7 @@ void draw_ui(int ui_x, int ui_y) {
 
   /* Draw separator and borders */
   for (i = 0; i < CON_HEIGHT; i++)
-    cprint(i, ui_x, TCOD_black, TCOD_white, " ");
+    cprint(i, ui_x, TCOD_white, TCOD_black, "|");
 
   switch (INPUT_MODE) {
   case INPUT_INVENTORY:
@@ -196,12 +187,12 @@ void draw_ui(int ui_x, int ui_y) {
     for (j = ui_x+2; j <= CON_WIDTH-2; j++)
       cprint(ui_y+1, j, TCOD_lime, TCOD_black, "~");
     cprint_center(ui_y+1, ui_x+UI_WIDTH/2+1,
-		  TCOD_white, TCOD_black, " %s ", player.name);
+		  TCOD_white, TCOD_black, " %s ", player->name);
 
     /* Draw level and exp */
-    cprint(ui_y+3, ui_x+3, TCOD_white, TCOD_black, "Level: %d", player.level);
+    cprint(ui_y+3, ui_x+3, TCOD_white, TCOD_black, "Level: %d", player->level);
     cprint(ui_y+4, ui_x+3, TCOD_white, TCOD_black,
-	   "Exp: %d / %d", player.exp, player.level*100);
+	   "Exp: %d / %d", player->exp, player->level*100);
 
     /* Draw depth and turn*/
     cprint_right(ui_y+3, CON_WIDTH-3, TCOD_white, TCOD_black,
@@ -211,13 +202,15 @@ void draw_ui(int ui_x, int ui_y) {
 
     /* Draw hp and mp */
 #define OFFSET_HP 7
-    cprint(ui_y+OFFSET_HP, ui_x+10, TCOD_white, TCOD_black, "%d / %d", 12, 32);
+    cprint(ui_y+OFFSET_HP, ui_x+10, TCOD_white, TCOD_black,
+	   "%d / %d", player->hp_cur, player->hp_max);
     cprint(ui_y+OFFSET_HP+1, ui_x+3, TCOD_white, TCOD_black, "HP: [");
     for (j = ui_x+8; j < CON_WIDTH-3; j++)
       cprint(ui_y+OFFSET_HP+1, j, TCOD_flame, TCOD_black, "=");
     cprint(ui_y+OFFSET_HP+1, CON_WIDTH-3, TCOD_white, TCOD_black, "]");
 
-    cprint(ui_y+OFFSET_HP+3, ui_x+10, TCOD_white, TCOD_black, "%d / %d", 5, 5);
+    cprint(ui_y+OFFSET_HP+3, ui_x+10, TCOD_white, TCOD_black,
+	   "%d / %d", player->mp_cur, player->mp_max);
     cprint(ui_y+OFFSET_HP+4, ui_x+3, TCOD_white, TCOD_black, "MP: [");
     for (j = ui_x+8; j < CON_WIDTH-3; j++)
       cprint(ui_y+OFFSET_HP+4, j, TCOD_azure, TCOD_black, "=");
@@ -229,11 +222,19 @@ void draw_ui(int ui_x, int ui_y) {
 #define OFFSET_MSG 12
     for (j = ui_x+1; j < CON_WIDTH; j++)
       cprint(CON_HEIGHT-OFFSET_MSG, j, TCOD_white, TCOD_black, "~");
-    for (iterator = (char**)TCOD_list_end(message_list)-1, i = CON_HEIGHT-2;
-	 i > CON_HEIGHT-OFFSET_MSG+1 && iterator != (char**)TCOD_list_begin(message_list)-1;
-	 iterator--, i--) {
-      cprint(i, ui_x+2, TCOD_white, TCOD_black, "%s", *iterator);
+
+    for (iterator = (char**)TCOD_list_end(message_list)-1, i = CON_HEIGHT-2,
+	   iterator2 = (int*)TCOD_list_end(message_turn_list)-1;
+	 i > CON_HEIGHT-OFFSET_MSG+1 &&
+	   iterator != (char**)TCOD_list_begin(message_list)-1;
+	 iterator--, iterator2--, i--) {
+      if (*iterator2 >= TURN_COUNT)
+	cprint(i, ui_x+2, TCOD_white, TCOD_black, "%s", *iterator);
+      else
+	cprint(i, ui_x+2, TCOD_grey, TCOD_black, "%s", *iterator);
     }
+    if (i == CON_HEIGHT-OFFSET_MSG+1 && iterator != (char**)TCOD_list_begin(message_list)-1 && *iterator2 >= TURN_COUNT)
+    cprint_right(i, CON_WIDTH-2, TCOD_green, TCOD_black, "[more]");
     break;
   }
 }

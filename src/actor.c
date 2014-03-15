@@ -6,6 +6,26 @@
 #include "priority.h"
 #include "actor.h"
 
+ACTOR* actor_create(int y, int x, char *name) {
+  ACTOR **iterator;
+  ACTOR *a;
+  for (iterator = (ACTOR**)TCOD_list_begin(actor_type_list);
+       iterator != (ACTOR**)TCOD_list_end(actor_type_list);
+       iterator++) {
+    if (strcmp(name, (*iterator)->name) == 0) {
+      a = malloc(sizeof(ACTOR));
+      *a = (**iterator);
+      a->y = y;
+      a->x = x;
+      DUNGEON[y][x].resident = a;
+      if (strcmp(name, "player") != 0)
+	priq_push(enemy_queue, a, a->spd);
+      return a;
+    }
+  }
+  return NULL;
+}
+
 /* Advances a turn for ALL actors apart from player. */
 void advance_turn() {
   ACTOR *a;
@@ -21,8 +41,9 @@ void advance_turn() {
 
 int can_move(ACTOR *a, int dy, int dx) {
   int x = a->x+dx, y = a->y+dy;
-  FURN *furn = DUNGEON[y][x].furn;
-  return ((furn != NULL && furn->type == FURN_BRIDGE) || CHK_PASSABLE(y, x));
+  //FURN *furn = DUNGEON[y][x].furn;
+  /* Check for bridge */
+  return (CHK_PASSABLE(y, x) && DUNGEON[y][x].resident == NULL);
 }
 
 void actor_move(ACTOR *a, int dy, int dx) {
@@ -41,7 +62,7 @@ void actor_pickup(ACTOR *a, int y, int x, int i) {
   /* Add message if visible */
   if (CHK_VISIBLE(y, x)) {
     message_add(sentence_form(a->art, 1, a->name, "picks up", "pick up",
-			      item->art, 1, item->name));
+			      item->art, 1, item->name), ".");
   }
 
   for (iterator = (ITEM_N**)TCOD_list_begin(*(a->inventory));

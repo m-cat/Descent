@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include <math.h>
 #include <assert.h>
 #include <libtcod.h>
@@ -15,9 +16,23 @@
 
 void calc_fov() {
   int i, j;
-  TCOD_map_compute_fov(fov_map, player.x, player.y, FOV_RADIUS, 1, FOV_SHADOW);
-  for (i = CAMERA_Y-CON_HEIGHT+1; i < CAMERA_Y+CON_HEIGHT; i++)
-    for (j = CAMERA_X-CON_WIDTH+1; j < CAMERA_X+CON_WIDTH; j++) {
+  ACTOR *a;
+  char *subject;
+
+  TCOD_map_compute_fov(fov_map, player->x, player->y, FOV_RADIUS, 1, FOV_SHADOW);
+  for (i = MAX(DUNGEON_Y, CAMERA_Y-CON_HEIGHT+1);
+       i < MIN(DUNGEON_Y+CURRENT_HEIGHT, CAMERA_Y+CON_HEIGHT); i++)
+    for (j = MAX(DUNGEON_X, CAMERA_X-CON_WIDTH+1); 
+	 j < MIN(DUNGEON_X+CURRENT_WIDTH, CAMERA_X+CON_WIDTH); j++) {
       TCOD_map_is_in_fov(fov_map, j, i) ? VIS_SET(j, i) : VIS_CLR(j, i);
+      if (CHK_VISIBLE(i, j) && DUNGEON[i][j].resident != NULL) {
+	a = DUNGEON[i][j].resident;
+	if (a->IS_SEEN == 0) {
+	  subject = subject_form(a->art, 1, a->name);
+	  message_add(string_create(2,"You see ", subject), ".");
+	  free(subject);
+	  a->IS_SEEN = 1;
+	}
+      }
     }
 }

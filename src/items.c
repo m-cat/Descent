@@ -7,13 +7,9 @@
 #include "items.h"
 
 void item_copy(ITEM *dest, ITEM *source) {
-  float h, s, v;
+  *dest = *source;
   dest->name = strdup(source->name);
   dest->art = strdup(source->art);
-  dest->type = source->type;
-  dest->ch = source->ch;
-  TCOD_color_get_HSV(source->col, &h, &s, &v);
-  TCOD_color_set_HSV(&(dest->col), h, s, v);
 }
 
 ITEM* item_create(char *name) {

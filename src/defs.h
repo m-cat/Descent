@@ -21,6 +21,8 @@ extern const char *GAME_NAME;
 
 /* Define global variables */
 
+char *PLAYER_NAME;
+
 extern int DEPTH;
 extern int MAX_WIDTH; /* full allocated space for dungeon */
 extern int MAX_HEIGHT;
@@ -87,9 +89,9 @@ enum TILE_TYPE {
 };
 
 enum ACTOR_TYPE {
-  ACTOR_PLAYER,
-  ACTOR_ENEMY,
-  ACTOR_NPC,
+  ACTOR_PLAYER      = 0,
+  ACTOR_ENEMY       = 1,
+  ACTOR_NPC         = 2,
 };
 
 enum ITEM_TYPE {
@@ -133,15 +135,20 @@ typedef struct {
   int x, y;          /* position */
   int level, exp;
   int hp_max, hp_cur;
+  int mp_max, mp_cur;
   int spd;           /* movement priority - lower is faster */
 
   TCOD_list_t *inventory; /* remember to free */
+  ITEM *weapon;
+  ITEM *armor;
 
   char CAN_MOVE,
     CAN_WALK,
     CAN_SWIM,
     CAN_FLY,
     CAN_BURROW;
+
+  char IS_SEEN; /* whether this actor has been seen by the player */
 } ACTOR;
 
 typedef struct {
@@ -175,9 +182,11 @@ DUNGEON_BLOCK **DUNGEON;
 DUNGEON_BLOCK block_wall;
 DUNGEON_BLOCK block_floor;
 TCOD_map_t fov_map;
+TCOD_list_t actor_type_list;
 TCOD_list_t item_type_list;
 TCOD_list_t block_type_list;
 TCOD_list_t message_list;
+TCOD_list_t message_turn_list;
 pri_queue enemy_queue, temp_queue;
 
 #endif /* DEFS_H */

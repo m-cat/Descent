@@ -17,7 +17,7 @@ char* string_create(int argc, ...);
 char* subject_form(char *article, int num, char *subject);
 char* sentence_form(char *article1, int num1, char *subject, char *verb_sing,
 		    char *verb_plur, char *article2, int num2, char *object);
-void message_add(char *str);
+void message_add(char *str, char *punc);
 
 char *strdup (const char *s);
 

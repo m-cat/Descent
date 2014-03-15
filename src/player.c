@@ -1,28 +1,18 @@
 #include <stdlib.h>
 #include <libtcod.h>
 #include "defs.h"
+#include "util.h"
 #include "items.h"
 #include "actor.h"
 #include "player.h"
 
-ACTOR player;
-
-
 void player_place(int y, int x) {
   /* Initialize the player */
-  player.type = ACTOR_PLAYER;
-  player.ch = '@';
-  player.art = "you";
-
-  player.x = x;
-  player.y = y;
-  CAMERA_X = player.x, CAMERA_Y = player.y;
-  LOOK_X = player.x, LOOK_Y = player.y;
-
-  player.inventory = malloc(sizeof(TCOD_list_t));
-  *(player.inventory) = TCOD_list_allocate(100);
-
-  DUNGEON[player.y][player.x].resident = &player;
+  player = actor_create(y, x, "player");
+  CAMERA_X = player->x, CAMERA_Y = player->y;
+  LOOK_X = player->x, LOOK_Y = player->y;
+  player->name = PLAYER_NAME;
+  player->IS_SEEN = 1;
 }
 
 void handle_scroll(int dy, int dx) {
@@ -42,7 +32,7 @@ void handle_look(int dy, int dx) {
    Tries to perform a player action corresponding to the pressed key.
    Returns 1 if an action was peformed. */
 #define move_if_can(p, dy, dx)					\
-  (can_move(&p, dy, dx) ? (actor_move(&p, dy, dx), 1) : 0)
+  (can_move(p, dy, dx) ? (actor_move(p, dy, dx), 1) : 0)
 #define handle_direction(dy, dx)					\
   ((INPUT_MODE==INPUT_ACTION) ? move_if_can(player, dy, dx) :		\
    ((INPUT_MODE==INPUT_SCROLL) ? (handle_scroll(dy, dx), 0) :		\
@@ -62,8 +52,8 @@ int handle_input(TCOD_event_t ev, TCOD_keycode_t key, char ch, int ctrl,
     INPUT_MODE = INPUT_INVENTORY;
   else if ((INPUT_MODE == INPUT_ACTION || INPUT_MODE == INPUT_LOOK)
 	   && ev == TCOD_EVENT_MOUSE_PRESS) {
-    m_y += player.y-CON_HEIGHT/2;
-    m_x += player.x-(CON_WIDTH-UI_WIDTH)/2;
+    m_y += player->y-CON_HEIGHT/2;
+    m_x += player->x-(CON_WIDTH-UI_WIDTH)/2;
     if (CHK_VISIBLE(m_y, m_x)) {
       if (INPUT_MODE == INPUT_LOOK && LOOK_Y == m_y && LOOK_X == m_x)
 	INPUT_MODE = INPUT_ACTION;
@@ -85,11 +75,16 @@ int handle_input(TCOD_event_t ev, TCOD_keycode_t key, char ch, int ctrl,
   /* Check key release */
   if (ev == TCOD_EVENT_KEY_RELEASE) {
     if (key == TCODK_CONTROL) {
-      CAMERA_Y = player.y;
-      CAMERA_X = player.x;
+      CAMERA_Y = player->y;
+      CAMERA_X = player->x;
     }
     return 0;
   }
+
+  /* Temporarily increment TURN_COUNT so that any messages that
+     are generated are displayed properly. */
+  TURN_COUNT++;
+
   /* Key was pressed */
   switch (key) {
   case TCODK_KP8:
@@ -120,35 +115,38 @@ int handle_input(TCOD_event_t ev, TCOD_keycode_t key, char ch, int ctrl,
   case TCODK_KP7:
     ret = handle_direction(-1, -1);
     break;
-  case TCODK_KP5:
-    ret = 1; /* take up turn doing nothing */
+  case TCODK_KP5:  /* take up turn doing nothing */
+    ret = (INPUT_MODE == INPUT_ACTION);
     break;
   case TCODK_PRINTSCREEN:
   case TCODK_F12:
+    TURN_COUNT--;
     TCOD_sys_save_screenshot(NULL);
+    message_add(string_create(1, "A screenshot has been saved into the working directory"), ".");
+    TURN_COUNT++;
     break;
   case TCODK_CHAR:
     switch (ch) {
     case 'g': /* pickup item */
     case ',':
       if (INPUT_MODE == INPUT_ACTION) {
-	if (item_get_top(player.y, player.x) != NULL) {
-	  actor_pickup(&player, player.y, player.x, -1);
+	if (item_get_top(player->y, player->x) != NULL) {
+	  actor_pickup(player, player->y, player->x, -1);
 	  ret = 1;
 	}
       }
       break;
     case 'd': /* drop item */
       if (INPUT_MODE == INPUT_ACTION) {
-	if (TCOD_list_size(*(player.inventory)) > 0) {
-	  actor_drop(&player, player.y, player.x, -1);
+	if (TCOD_list_size(*(player->inventory)) > 0) {
+	  actor_drop(player, player->y, player->x, -1);
 	  ret = 1;
 	}
       }
       break;
     case '>':
       if (INPUT_MODE == INPUT_ACTION) {
-	if (DUNGEON[player.y][player.x].type == TILE_STAIRS_DOWN) {
+	if (DUNGEON[player->y][player->x].type == TILE_STAIRS_DOWN) {
 	  /* Take the stairs down */
 	  ret = 1;
 	}
@@ -166,14 +164,15 @@ int handle_input(TCOD_event_t ev, TCOD_keycode_t key, char ch, int ctrl,
 
   /* Update camera to center on player */
   if (INPUT_MODE == INPUT_ACTION) {
-    CAMERA_X = player.x;
-    CAMERA_Y = player.y;
+    CAMERA_X = player->x;
+    CAMERA_Y = player->y;
   }
   /* If move was made, look coordinates should be reset */
   if (ret) {
-    LOOK_X = player.x;
-    LOOK_Y = player.y;
+    LOOK_X = player->x;
+    LOOK_Y = player->y;
   }
 
+  TURN_COUNT--;
   return ret;
 }

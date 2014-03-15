@@ -3,6 +3,8 @@
 
 #include "defs.h"
 
+ACTOR* actor_create(int y, int x, char *name);
+
 void advance_turn();
 
 int can_move(ACTOR *a, int dy, int dx);

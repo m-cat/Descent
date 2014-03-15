@@ -68,7 +68,7 @@ void draw_menu(enum MENU_SCREEN menu) {
     } while (!(key.vk == TCODK_ENTER && cur_len != 0) &&
 	     key.vk != TCODK_KPENTER);
     assert (strlen(str) > 0);
-    player.name = str;
+    PLAYER_NAME = str;
     break;
   }
 }

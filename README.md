@@ -1,5 +1,7 @@
 #Descent
 
+![alt text](http://i.imgur.com/i5so9L3.png)
+
 ##What is Descent?
 
 Descent is a work-in-progress [roguelike](http://en.wikipedia.org/wiki/Roguelike) game. It will differ from most convential roguelikes by foregoing archaic and dated gameplay and instead offering an intuitive and user-friendly experience.

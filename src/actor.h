@@ -4,6 +4,7 @@
 #include "defs.h"
 
 ACTOR* actor_create(int y, int x, char *name);
+void actor_delete(ACTOR *a);
 
 void advance_turn();
 

@@ -58,6 +58,7 @@ enum INPUT_MODES {
   INPUT_LOOK,
   INPUT_SCROLL,
   INPUT_INVENTORY,
+  INPUT_MESSAGE,
 };
 
 enum DIRECTION {
@@ -188,6 +189,6 @@ TCOD_list_t item_type_list;
 TCOD_list_t block_type_list;
 TCOD_list_t message_list;
 TCOD_list_t message_turn_list;
-pri_queue enemy_queue, temp_queue;
+pri_queue actor_queue, temp_queue;
 
 #endif /* DEFS_H */

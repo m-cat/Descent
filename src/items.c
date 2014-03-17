@@ -89,7 +89,8 @@ void item_drop(int y, int x, ITEM *item) {
 
 void item_place(int y, int x, char* name) {
   ITEM *item = item_create(name);
-  assert(item != NULL);
+  /* TODO: add error message if item not found */
+  assert (item != NULL);
   item_drop(y, x, item);
 }
 

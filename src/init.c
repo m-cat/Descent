@@ -18,8 +18,6 @@ DUNGEON_BLOCK *current_block;
 bool actor_parser_new_struct(TCOD_parser_struct_t str, const char *name) {
   current_actor = calloc(sizeof(ACTOR), 1);
   current_actor->name = strdup(name);
-  current_actor->inventory = malloc(sizeof(TCOD_list_t));
-  *(current_actor->inventory) = TCOD_list_new();
   return true;
 }
 bool actor_parser_flag(const char *name) {
@@ -159,7 +157,7 @@ int init_all() {
   message_list = TCOD_list_allocate(MESSAGE_LIST_LEN);
   message_turn_list = TCOD_list_allocate(MESSAGE_LIST_LEN);
   message_add(string_create(2,"Welcome to ", GAME_NAME), "!");
-  enemy_queue = priq_new(sizeof(ACTOR *));
+  actor_queue = priq_new(sizeof(ACTOR *));
   temp_queue = priq_new(sizeof(ACTOR *));
 
   /* Parse config files */

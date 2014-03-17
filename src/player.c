@@ -4,11 +4,17 @@
 #include "util.h"
 #include "items.h"
 #include "actor.h"
+#include "dungeon.h"
 #include "player.h"
+
+ACTOR *player = NULL;
 
 void player_place(int y, int x) {
   /* Initialize the player */
-  player = actor_create(y, x, "player");
+  if (player == NULL)
+    player = actor_create(y, x, "player");
+  player->y = y, player->x = x;
+  DUNGEON[y][x].resident = player;
   CAMERA_X = player->x, CAMERA_Y = player->y;
   LOOK_X = player->x, LOOK_Y = player->y;
   player->name = PLAYER_NAME;
@@ -36,10 +42,11 @@ void handle_inv(int dy, int dx) {
 }
 
 /* Possible modes:
-   - Action, Examine, Scroll, Inventory
+   - Action, Examine, Scroll, Inventory, Message
    Action Mode:
    Tries to perform a player action corresponding to the pressed key.
    Returns 1 if an action was peformed. */
+
 #define move_if_can(p, dy, dx)					\
   (can_move(p, dy, dx) ? (actor_move(p, dy, dx), 1) : 0)
 #define handle_direction(dy, dx)					\
@@ -60,6 +67,8 @@ int handle_input(TCOD_event_t ev, TCOD_keycode_t key, char ch, int ctrl,
     INPUT_MODE = INPUT_LOOK;
   else if ((INPUT_MODE == INPUT_ACTION) && ev == TCOD_EVENT_KEY_PRESS && ch=='i')
     INPUT_MODE = INPUT_INVENTORY;
+  else if ((INPUT_MODE == INPUT_ACTION) && ev == TCOD_EVENT_KEY_PRESS && ch=='m')
+    INPUT_MODE = INPUT_MESSAGE;
   else if ((INPUT_MODE == INPUT_ACTION || INPUT_MODE == INPUT_LOOK)
 	   && ev == TCOD_EVENT_MOUSE_PRESS) {
     m_y += player->y-CON_HEIGHT/2;
@@ -81,6 +90,8 @@ int handle_input(TCOD_event_t ev, TCOD_keycode_t key, char ch, int ctrl,
   else if ((INPUT_MODE == INPUT_INVENTORY) && ev == TCOD_EVENT_KEY_PRESS && ch=='i') {
     INPUT_MODE = INPUT_ACTION;
   }
+  else if ((INPUT_MODE == INPUT_MESSAGE) && ev == TCOD_EVENT_KEY_PRESS && ch=='m')
+    INPUT_MODE = INPUT_ACTION;
 
   /* Check key release */
   if (ev == TCOD_EVENT_KEY_RELEASE) {
@@ -176,10 +187,22 @@ int handle_input(TCOD_event_t ev, TCOD_keycode_t key, char ch, int ctrl,
 	}
       }
       break;
+    case '<':
+      if (INPUT_MODE == INPUT_ACTION) {
+	if (DUNGEON[player->y][player->x].type == TILE_STAIRS_UP) {
+	  /* Take the stairs up */
+	  dungeon_next();
+	  ret = 1;
+	}
+	else
+	  ;
+      }
+      break;
     case '>':
       if (INPUT_MODE == INPUT_ACTION) {
 	if (DUNGEON[player->y][player->x].type == TILE_STAIRS_DOWN) {
 	  /* Take the stairs down */
+	  dungeon_next();
 	  ret = 1;
 	}
 	else

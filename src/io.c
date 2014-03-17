@@ -193,6 +193,20 @@ void draw_ui(int ui_x, int ui_y) {
   case INPUT_INVENTORY:
     draw_inventory(ui_x, ui_y);
     break;
+  case INPUT_MESSAGE:
+    cprint_center(1, ui_x+UI_WIDTH/2+1, TCOD_white, TCOD_black, "Messages");
+
+    for (iterator = (char**)TCOD_list_end(message_list)-1, i = CON_HEIGHT-2,
+	   iterator2 = (int*)TCOD_list_end(message_turn_list)-1;
+	 i > 2 &&
+	   iterator != (char**)TCOD_list_begin(message_list)-1;
+	 iterator--, iterator2--, i--) {
+      if (*iterator2 >= TURN_COUNT)
+	cprint(i, ui_x+2, TCOD_white, TCOD_black, "%s", *iterator);
+      else
+	cprint(i, ui_x+2, TCOD_grey, TCOD_black, "%s", *iterator);
+    }
+    break;
   default:
      /* Draw name */
     for (j = ui_x+2; j <= CON_WIDTH-2; j++)

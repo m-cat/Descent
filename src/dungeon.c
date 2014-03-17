@@ -4,6 +4,7 @@
 #include <libtcod.h>
 #include "defs.h"
 #include "util.h"
+#include "priority.h"
 #include "items.h"
 #include "actor.h"
 #include "player.h"
@@ -45,7 +46,7 @@ void CLR_OPTS(int y, int x) {
   DUNGEON[y][x].EXPLORED = 0;
 }
 void CLR_BLOCK(int y, int x) {
-  ITEM_N **iterator;
+  ITEM_N *iterator;
   DUNGEON_BLOCK *block = &DUNGEON[y][x];
 
   assert(block != NULL);
@@ -60,21 +61,21 @@ void CLR_BLOCK(int y, int x) {
   }
   /* Delete every item in a stash */
   if (block->stash != NULL) {
-    for (iterator = (ITEM_N**)TCOD_list_begin(*(block->stash));
-	 iterator != (ITEM_N**)TCOD_list_end(*(block->stash)); iterator++) {
-      item_delete((*iterator)->item); /* free the item */
-      free((*iterator));       /* free the item_n */
+    while (TCOD_list_size(*(block->stash)) > 0) {
+      iterator = TCOD_list_pop(*(block->stash));
+      item_delete(iterator->item); /* free the item */
+      free(iterator);       /* free the item_n */
     }
-    TCOD_list_delete(block->stash);
+    TCOD_list_delete(*(block->stash));
     free(block->stash);
-    block->stash = NULL;
   }
 }
 
 /* Clear all data from every dungeon block.
    Set the dungeon to be all walls. */
 void dungeon_clear() {
-  int i, j;
+  int i, j, pri;
+  ACTOR *a;
 
   /* Clear all blocks */
   for (i = 0; i < MAX_HEIGHT; i++) {
@@ -85,6 +86,10 @@ void dungeon_clear() {
   }
 
   /* Delete all actors */
+  while ((a = priq_pop(actor_queue, &pri))) {
+    /* Take out actor from the queue and delete it*/
+    actor_delete(a);
+  }
 
   /* Delete the fov map */
   TCOD_map_delete(fov_map);
@@ -269,6 +274,7 @@ void dungeon_gen_cave(int goal) {
       SET_FLOOR(y, x);
     }
   }
+  block_create(y, x, "upward staircase");
   player_place(y, x);
 }
 
@@ -296,7 +302,7 @@ void dungeon_place_items() {
     } while (DUNGEON[y][x].type != TILE_FLOOR);
     item_place(y, x, rand_int(0,1) ? "diamond" : "apple");
   }
-  item_place(y, x, "pickax");
+  item_place(y, x, "pickaxe");
 }
 
 void dungeon_place_enemies() {
@@ -332,4 +338,10 @@ void dungeon_gen(enum DUNGEON_TYPE type) {
   dungeon_place_items();
   dungeon_place_enemies();
   dungeon_set_fov();
+}
+
+void dungeon_next() {
+  DEPTH++;
+  dungeon_gen(DUNGEON_CAVE);
+  message_add(string_create(1, "You descend down the stairs"), "!");
 }

@@ -178,7 +178,7 @@ char* name_gen() {
   const char *dconsonants = "brchclcttrthghdrmmttllstqu";
   const char *end_dconsonants = "chctthghstrm";
   const char *tconsonants = "strthrchr";
-  const char *vowels = "aeiou";
+  const char *vowels = "aaeeiioou";
   const char *dvowels = "ioiaai";
   char *word = calloc(MAX_NAME_LEN+1,1);
   int c, m;

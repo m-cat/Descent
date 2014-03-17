@@ -34,7 +34,7 @@ Some visual improvements were made.
 
 - Implement picking up specific items from the ground.
 
-###Credits
+##Credits
 
 All code in "src" folder by Marcin Swieczkowki, except where noted.
 

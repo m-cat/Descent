@@ -22,8 +22,8 @@ void player_place(int y, int x) {
 }
 
 void handle_scroll(int dy, int dx) {
-  CAMERA_Y += dy;
-  CAMERA_X += dx;
+  CAMERA_Y += 4*dy;
+  CAMERA_X += 4*dx;
 }
 
 void handle_look(int dy, int dx) {
@@ -41,16 +41,28 @@ void handle_inv(int dy, int dx) {
     INV_POS = 0;
 }
 
+int attempt_move(int dy, int dx) {
+  ACTOR *a;
+
+  if (can_move(player, dy, dx)) {
+    actor_move(player, dy, dx);
+    return 1;
+  }
+  if ((a = DUNGEON[player->y+dy][player->x+dx].resident) != NULL) {
+    actor_attack(player, a);
+    return 1;
+  }
+  return 0;
+}
+
 /* Possible modes:
-   - Action, Examine, Scroll, Inventory, Message
+   - Action, Examine, Scroll, Inventory, Message, Equip
    Action Mode:
    Tries to perform a player action corresponding to the pressed key.
    Returns 1 if an action was peformed. */
 
-#define move_if_can(p, dy, dx)					\
-  (can_move(p, dy, dx) ? (actor_move(p, dy, dx), 1) : 0)
 #define handle_direction(dy, dx)					\
-  ((INPUT_MODE==INPUT_ACTION) ? move_if_can(player, dy, dx) :		\
+  ((INPUT_MODE==INPUT_ACTION) ? attempt_move(dy, dx) :			\
    ((INPUT_MODE==INPUT_SCROLL) ? (handle_scroll(dy, dx), 0) :		\
     ((INPUT_MODE==INPUT_LOOK) ? (handle_look(dy, dx), 0) :		\
      ((INPUT_MODE==INPUT_INVENTORY) ? handle_inv(dy, dx), 0 :		\
@@ -61,7 +73,12 @@ int handle_input(TCOD_event_t ev, TCOD_keycode_t key, char ch, int ctrl,
   int ret = 0, i;
 
   /* Change input modes */
-  if ((INPUT_MODE == INPUT_ACTION) && ctrl)
+  if ((INPUT_MODE != INPUT_ACTION) && ev == TCOD_EVENT_KEY_PRESS && key==TCODK_ESCAPE)
+    INPUT_MODE = INPUT_ACTION; /* Escape -> default screen */
+  else if ((INPUT_MODE == INPUT_ACTION) && ev == TCOD_EVENT_KEY_PRESS && key==TCODK_ESCAPE) {
+    return -1; /* Escape -> Main Menu */
+  }
+  else if ((INPUT_MODE == INPUT_ACTION) && ctrl)
     INPUT_MODE = INPUT_SCROLL;
   else if ((INPUT_MODE == INPUT_ACTION) && ev == TCOD_EVENT_KEY_PRESS && ch=='x')
     INPUT_MODE = INPUT_LOOK;
@@ -69,6 +86,8 @@ int handle_input(TCOD_event_t ev, TCOD_keycode_t key, char ch, int ctrl,
     INPUT_MODE = INPUT_INVENTORY;
   else if ((INPUT_MODE == INPUT_ACTION) && ev == TCOD_EVENT_KEY_PRESS && ch=='m')
     INPUT_MODE = INPUT_MESSAGE;
+  else if ((INPUT_MODE == INPUT_ACTION) && ev == TCOD_EVENT_KEY_PRESS && ch=='e')
+    INPUT_MODE = INPUT_EQUIP;
   else if ((INPUT_MODE == INPUT_ACTION || INPUT_MODE == INPUT_LOOK)
 	   && ev == TCOD_EVENT_MOUSE_PRESS) {
     m_y += player->y-CON_HEIGHT/2;
@@ -91,6 +110,8 @@ int handle_input(TCOD_event_t ev, TCOD_keycode_t key, char ch, int ctrl,
     INPUT_MODE = INPUT_ACTION;
   }
   else if ((INPUT_MODE == INPUT_MESSAGE) && ev == TCOD_EVENT_KEY_PRESS && ch=='m')
+    INPUT_MODE = INPUT_ACTION;
+  else if ((INPUT_MODE == INPUT_EQUIP) && ev == TCOD_EVENT_KEY_PRESS && ch=='e')
     INPUT_MODE = INPUT_ACTION;
 
   /* Check key release */

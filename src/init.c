@@ -198,7 +198,7 @@ int init_all() {
   /* Initialize misc */
   TCOD_sys_set_fps(FPS);
   TCOD_console_set_background_flag(NULL, TCOD_BKGND_SET);
-
+  TCOD_console_set_keyboard_repeat(0,0);
 
 
   return 0;

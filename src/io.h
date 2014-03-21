@@ -15,7 +15,14 @@
    cprint(y, x, c1, c2, args),				\
    TCOD_console_set_alignment(NULL, TCOD_LEFT))
 
+enum {
+  NUMERIC,
+  ALPHA,
+  ALPHANUM,
+};
+
+char* cinput(int y, int x, int max, int type);
+
 void draw_game();
-void draw_menu();
 
 #endif

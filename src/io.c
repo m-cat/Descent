@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include <ctype.h>
 #include <libtcod.h>
 #include "defs.h"
 #include "util.h"
@@ -8,6 +9,35 @@
 #include "player.h"
 #include "io.h"
 
+/* type = {ALPHA, NUM, ALPHANUMERIC}
+   Returns NULL if user pressed Escape */
+char* cinput(int y, int x, int max, int type) {
+  TCOD_key_t key;
+  int cur_len = 0;
+  char *str = calloc(max+1, 1);
+
+  do {
+    cprint(y, x, TCOD_white, TCOD_black, "%s_", str);
+    TCOD_console_flush();
+
+    TCOD_sys_wait_for_event(TCOD_EVENT_KEY_PRESS,&key,NULL,1);
+    if (((is_alphanum(key.c) && type==ALPHANUM) || (is_alpha(key.c) && type==ALPHA) || (is_num(key.c) && type==NUMERIC)) && cur_len < max-1) {
+      str[cur_len++] = key.c;
+      str[cur_len] = 0;
+    }
+    else if ((key.vk == TCODK_BACKSPACE || key.vk == TCODK_DELETE) && cur_len > 0)
+      str[--cur_len] = 0;
+    else if (key.c == ' ') {
+      ; /* Implement something here if needed */
+    }
+    else if (key.vk == TCODK_ESCAPE) {
+      free(str);
+      return NULL;
+    }
+  } while ((key.vk != TCODK_ENTER && key.vk != TCODK_KPENTER) || cur_len == 0);
+  assert (strlen(str) > 0);
+  return str;
+}
 
 #define OFFSET_NOT 1 /* x-offset for notification message */
 void draw_notify(int scr_width) {
@@ -171,6 +201,11 @@ void draw_inventory(int ui_x, int ui_y) {
   }
 }
 
+void draw_equip(int ui_x, int ui_y) {
+  cprint_center(ui_y+1, ui_x+UI_WIDTH/2+1, TCOD_white, TCOD_black, "Equipment");
+}
+
+
 void draw_ui(int ui_x, int ui_y) {
   int i, j;
   char **iterator;
@@ -193,8 +228,11 @@ void draw_ui(int ui_x, int ui_y) {
   case INPUT_INVENTORY:
     draw_inventory(ui_x, ui_y);
     break;
+  case INPUT_EQUIP:
+    draw_equip(ui_x, ui_y);
+    break;
   case INPUT_MESSAGE:
-    cprint_center(1, ui_x+UI_WIDTH/2+1, TCOD_white, TCOD_black, "Messages");
+    cprint_center(1, ui_x+UI_WIDTH/2+1, TCOD_white, TCOD_black, "Latest Messages");
 
     for (iterator = (char**)TCOD_list_end(message_list)-1, i = CON_HEIGHT-2,
 	   iterator2 = (int*)TCOD_list_end(message_turn_list)-1;

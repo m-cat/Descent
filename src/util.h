@@ -9,6 +9,10 @@
 #define SIGN(n) ((n) ? ((n>0) ? 1 : -1) : 0)
 #define SWAP(a,b) ((a) ^= (b), (b) ^= (a), (a) ^= (b))
 
+int is_alpha(int c);
+int is_num(int c);
+int is_alphanum(int c);
+
 #define a_or_an(s) (_a_or_an(s) ? "a" : "an")
 int _a_or_an(const char *s);
 void capitalize(char *s);

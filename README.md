@@ -6,15 +6,9 @@
 
 Descent is a work-in-progress [roguelike](http://en.wikipedia.org/wiki/Roguelike) game. It will differ from most convential roguelikes by foregoing archaic and dated gameplay and instead offering an intuitive and user-friendly experience.
 
-##Current State (3-15-2014)
+##Current State (3-21-2014)
 
-Made a lot of progress on the inventory system. You can now scroll through the inventory to drop or wield specific items.
-
-Added a rat as the first enemy. Still need to work on AI.
-
-Nice-looking line-wrapping message system completed.
-
-Some visual improvements were made.
+Been too busy to work on major features. However, a lot of the code has been simplified or improved, some bugs have been fixed, and some minor things have been implemented.
 
 ###To Do
 

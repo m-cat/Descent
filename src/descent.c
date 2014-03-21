@@ -20,6 +20,8 @@ int main() {
   /* Initialize game */
   init_all(); /* Initialize console and colors */
 
+ start:
+
   /* Main menu */
   handle_menu();
 
@@ -35,13 +37,16 @@ int main() {
 				 &key,&mouse,1);
     next_turn = handle_input(ev, key.vk, key.c, key.lctrl||key.rctrl,
 			     mouse.cx, mouse.cy);
-    if (next_turn) { /* if player used up a turn */
+    if (next_turn == 1) { /* if player used up a turn */
       TURN_COUNT++;
       advance_turn();
       calc_fov();
     }
     draw_game();
-  } while (!TCOD_console_is_window_closed() && key.c != 'q');
+  } while (!TCOD_console_is_window_closed() && next_turn >= 0);
+
+  if (next_turn == -1) /* Escape was pressed, return to menu */
+    goto start;
 
   exit(1);
 }

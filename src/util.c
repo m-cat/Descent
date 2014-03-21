@@ -8,6 +8,20 @@
 #include "defs.h"
 #include "util.h"
 
+int is_alpha(int c) {
+  return ((c >= 'a' && c <= 'z') ||
+	  (c >= 'A' && c <= 'Z'));
+}
+
+int is_num(int c) {
+  return (c >= '0' && c <= '9');
+}
+
+/* isalnum() does not work properly with ncurses keys */
+int is_alphanum(int c) {
+  return is_alpha(c) || is_num(c);
+}
+
 /* Example usage:
    printf("You see here %s %s!\n", a_or_an(name), name); */
 int _a_or_an(const char *s) {

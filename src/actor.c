@@ -159,6 +159,15 @@ void actor_wield(ACTOR *a, int i) {
   }
 }
 
+/* a attacks b */
+/* TODO: Implement combat calculations */
+void actor_attack(ACTOR *a, ACTOR *b) {
+  message_add(sentence_form(a->art, 1, a->name, "attacks", "attack",
+			    b->art, 1, b->name), "!");
+
+  
+}
+
 void actor_act(ACTOR *a) {
   int dx, dy;
   do {

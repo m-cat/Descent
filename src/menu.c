@@ -12,20 +12,13 @@
 int MENU_CHOICE = 0; /* persists when user returns to menu */
 const int MENU_NUM_CHOICES = 2;
 
-/* isalnum() does not work properly with ncurses keys */
-int is_alphanum(int c) {
-  return ((c >= 'a' && c <= 'z') ||
-	  (c >= 'A' && c <= 'Z') ||
-	  (c >= '0' && c <= '9'));
-}
-
 enum MENU_SCREEN {
   MENU_MAIN,
   MENU_NAME,
 };
 
 
-void draw_menu(enum MENU_SCREEN menu) {
+int draw_menu(enum MENU_SCREEN menu) {
   char *str, *temp;
   int cur_len, max_len;
   TCOD_key_t key;
@@ -65,17 +58,28 @@ void draw_menu(enum MENU_SCREEN menu) {
 	cur_len = strlen(strcpy(str, temp));
 	free(temp);
       }
-    } while (!(key.vk == TCODK_ENTER && cur_len != 0) &&
-	     key.vk != TCODK_KPENTER);
-    assert (strlen(str) > 0);
+      else if (key.vk == TCODK_ESCAPE) {
+	free(str);
+	return -1;
+      }
+    } while ((key.vk != TCODK_ENTER && key.vk != TCODK_KPENTER) || cur_len == 0);
     PLAYER_NAME = str;
     break;
   }
+  return 0;
 }
+
+enum {
+  MENU_NEW,
+  MENU_QUIT,
+};
 
 void handle_menu() {
   TCOD_key_t key;
 
+ main_menu:
+
+  TCOD_console_clear(NULL);
   draw_menu(MENU_MAIN);
   /* Initial menu screen */
   do {
@@ -87,6 +91,9 @@ void handle_menu() {
     case TCODK_DOWN:
       MENU_CHOICE = (MENU_CHOICE == MENU_NUM_CHOICES-1) ? 0 : MENU_CHOICE+1;
       break;
+    case TCODK_ESCAPE:
+      exit(0);
+      break;
     default:
       break;
     }
@@ -96,11 +103,12 @@ void handle_menu() {
   TCOD_console_clear(NULL);
 
   /* QUIT */
-  if (MENU_CHOICE == 1)
+  if (MENU_CHOICE == MENU_QUIT)
     exit(0);
 
   /* NEW GAME */
-  draw_menu(MENU_NAME);
+  if (draw_menu(MENU_NAME) == -1)
+    goto main_menu;
 
   TCOD_console_clear(NULL);
 }

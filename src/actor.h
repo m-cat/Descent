@@ -14,6 +14,7 @@ void actor_pickup(ACTOR *a, int i);
 void actor_drop(ACTOR *a, int i);
 void actor_wield(ACTOR *a, int i);
 
+void actor_attack(ACTOR *a, ACTOR *b);
 void actor_act(ACTOR *a);
 
 #endif

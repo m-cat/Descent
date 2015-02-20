@@ -8,6 +8,13 @@
 #include "defs.h"
 #include "util.h"
 
+/*	Expand this function to do any needed cleanup in the future 
+	TODO: SAVING 
+*/
+void game_end() {
+	exit(0);
+}
+
 int is_alpha(int c) {
   return ((c >= 'a' && c <= 'z') ||
 	  (c >= 'A' && c <= 'Z'));

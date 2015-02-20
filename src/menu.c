@@ -37,30 +37,31 @@ int draw_menu(enum MENU_SCREEN menu) {
 
     do {
       TCOD_console_clear(NULL);
-      cprint(OFFSET_NAME_Y, OFFSET_NAME_X, TCOD_white, TCOD_black,
-	     "> %s_", str);
-      cprint(OFFSET_NAME_Y, OFFSET_NAME_X+max_len+1, TCOD_white, TCOD_black,
-	     " "); /* erase '_' if at end */
-      cprint(1, 1, TCOD_white, TCOD_black,
-	     "Welcome, adventurer! What is your name?");
+      cprint(OFFSET_NAME_Y, OFFSET_NAME_X, TCOD_white, TCOD_black, "> %s_", str);
+      cprint(OFFSET_NAME_Y, OFFSET_NAME_X+max_len+1, TCOD_white, TCOD_black, " "); /* erase '_' if at end */
+      cprint(1, 1, TCOD_white, TCOD_black, "Welcome, adventurer! What is your name?");
       cprint(5, 1, TCOD_white, TCOD_black, "Press space for a random name.");
       TCOD_console_flush();
 
       TCOD_sys_wait_for_event(TCOD_EVENT_KEY_PRESS,&key,NULL,1);
+	  if (TCOD_console_is_window_closed()) {
+		game_end();
+	  }
+
       if ((is_alphanum(key.c) || key.c == '-') && cur_len < max_len-1) {
-	str[cur_len++] = key.c;
-	str[cur_len] = 0;
+		str[cur_len++] = key.c;
+		str[cur_len] = 0;
       }
       else if ((key.vk == TCODK_BACKSPACE || key.vk == TCODK_DELETE) && cur_len > 0)
-	str[--cur_len] = 0;
+		str[--cur_len] = 0;
       else if (key.c == ' ') {
-	temp = name_gen();
-	cur_len = strlen(strcpy(str, temp));
-	free(temp);
+		temp = name_gen();
+		cur_len = strlen(strcpy(str, temp));
+		free(temp);
       }
       else if (key.vk == TCODK_ESCAPE) {
-	free(str);
-	return -1;
+		free(str);
+		return -1;
       }
     } while ((key.vk != TCODK_ENTER && key.vk != TCODK_KPENTER) || cur_len == 0);
     PLAYER_NAME = str;
@@ -74,7 +75,7 @@ enum {
   MENU_QUIT,
 };
 
-void handle_menu() {
+int handle_menu() {
   TCOD_key_t key;
 
  main_menu:
@@ -84,6 +85,9 @@ void handle_menu() {
   /* Initial menu screen */
   do {
     TCOD_sys_wait_for_event(TCOD_EVENT_KEY_PRESS,&key,NULL,1);
+	if (TCOD_console_is_window_closed()) {
+		game_end();
+	}
     switch (key.vk) {
     case TCODK_UP:
       MENU_CHOICE = (MENU_CHOICE == 0) ? MENU_NUM_CHOICES-1 : MENU_CHOICE-1;
@@ -92,7 +96,7 @@ void handle_menu() {
       MENU_CHOICE = (MENU_CHOICE == MENU_NUM_CHOICES-1) ? 0 : MENU_CHOICE+1;
       break;
     case TCODK_ESCAPE:
-      exit(0);
+      return 1;
       break;
     default:
       break;
@@ -104,11 +108,13 @@ void handle_menu() {
 
   /* QUIT */
   if (MENU_CHOICE == MENU_QUIT)
-    exit(0);
+    return 1;
 
   /* NEW GAME */
   if (draw_menu(MENU_NAME) == -1)
     goto main_menu;
 
   TCOD_console_clear(NULL);
+
+  return 0;
 }

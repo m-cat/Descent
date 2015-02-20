@@ -10,6 +10,7 @@
 extern const char *GAME_NAME;
 
 #define FPS 60
+#define TURN_DELAY 20 /* milliseconds */
 #define CON_WIDTH 80
 #define CON_HEIGHT 50
 #define UI_WIDTH 31
@@ -18,6 +19,14 @@ extern const char *GAME_NAME;
 #define MESSAGE_LIST_LEN 128
 
 #define FOV_RADIUS 16
+
+#define OFFSET_NOT 1 /* x-offset for notification message */
+#define OFFSET_HP_X 3
+#define OFFSET_HP_Y 8
+#define OFFSET_MP_X 3
+#define OFFSET_MP_Y 9
+#define OFFSET_WEP 14
+#define OFFSET_MSG 12
 
 /* Define global variables */
 
@@ -35,6 +44,7 @@ extern int CAMERA_X, CAMERA_Y;
 extern int LOOK_X, LOOK_Y;
 extern int INV_POS; /* scroll position in inventory */
 
+extern int TURN_DELAY_ON;
 
 /* Define macros */
 

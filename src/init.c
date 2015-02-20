@@ -5,7 +5,7 @@
 #include "defs.h"
 #include "priority.h"
 #include "util.h"
-#include "dungeon.h"
+#include "dungeon.h" 
 #include "player.h"
 #include "init.h"
 
@@ -136,31 +136,7 @@ TCOD_parser_listener_t block_listener = {
   block_parser_error
 };
 
-/* Do all initializations for the game */
-int init_all() {
-  int i;
-
-  /* Initialize TCOD console */
-  TCOD_console_init_root(CON_WIDTH, CON_HEIGHT, GAME_NAME,
-			 0, TCOD_RENDERER_SDL);
-
-  /* Initialize data structures */
-  DUNGEON = malloc(MAX_HEIGHT * sizeof(DUNGEON_BLOCK *));
-  for (i = 0; i < MAX_HEIGHT; i++) {
-    DUNGEON[i] = calloc(MAX_WIDTH, sizeof(DUNGEON_BLOCK));
-    assert(DUNGEON[i] != NULL);
-  }
-  fov_map = TCOD_map_new(MAX_WIDTH, MAX_HEIGHT);
-  actor_type_list = TCOD_list_allocate(128);
-  item_type_list = TCOD_list_allocate(128); /* allocate space for 128 items */
-  block_type_list = TCOD_list_allocate(32);
-  message_list = TCOD_list_allocate(MESSAGE_LIST_LEN);
-  message_turn_list = TCOD_list_allocate(MESSAGE_LIST_LEN);
-  message_add(string_create(2,"Welcome to ", GAME_NAME), "!");
-  actor_queue = priq_new(sizeof(ACTOR *));
-  temp_queue = priq_new(sizeof(ACTOR *));
-
-  /* Parse config files */
+void init_parse_config() {
   TCOD_parser_t actor_parser = TCOD_parser_new();
   TCOD_parser_struct_t actor_struct =
     TCOD_parser_new_struct(actor_parser, "actor_type");
@@ -194,6 +170,34 @@ int init_all() {
   TCOD_struct_add_property(block_struct, "passable", TCOD_TYPE_INT, 1);
   TCOD_parser_run(block_parser, "data/blocks.conf", &block_listener);
   TCOD_parser_delete(block_parser);
+ }
+
+/* Do all initializations for the game */
+int init_all() {
+  int i;
+
+  /* Initialize TCOD console */
+  TCOD_console_init_root(CON_WIDTH, CON_HEIGHT, GAME_NAME,
+			 0, TCOD_RENDERER_SDL);
+
+  /* Initialize data structures */
+  DUNGEON = malloc(MAX_HEIGHT * sizeof(DUNGEON_BLOCK *));
+  for (i = 0; i < MAX_HEIGHT; i++) {
+    DUNGEON[i] = calloc(MAX_WIDTH, sizeof(DUNGEON_BLOCK));
+    assert(DUNGEON[i] != NULL);
+  }
+  fov_map = TCOD_map_new(MAX_WIDTH, MAX_HEIGHT);
+  actor_type_list = TCOD_list_allocate(128);
+  item_type_list = TCOD_list_allocate(128); /* allocate space for 128 items */
+  block_type_list = TCOD_list_allocate(32);
+  message_list = TCOD_list_allocate(MESSAGE_LIST_LEN);
+  message_turn_list = TCOD_list_allocate(MESSAGE_LIST_LEN);
+  message_add(string_create(2,"Welcome to ", GAME_NAME), "!");
+  actor_queue = priq_new(sizeof(ACTOR *));
+  temp_queue = priq_new(sizeof(ACTOR *));
+
+  /* Parse config files */
+  init_parse_config();
 
   /* Initialize misc */
   TCOD_sys_set_fps(FPS);

@@ -307,7 +307,7 @@ void dungeon_place_items() {
 
 void dungeon_place_enemies() {
   /* Place enemies */
-  int i = 1, x, y;
+  int i = 50, x, y;
   while (i --> 0) {
     do {
       x = rand_int(DUNGEON_X+1, DUNGEON_X+CURRENT_WIDTH-1);

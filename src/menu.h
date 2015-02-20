@@ -1,6 +1,6 @@
 #ifndef MENU_H
 #define MENU_H
 
-void handle_menu();
+int handle_menu();
 
 #endif

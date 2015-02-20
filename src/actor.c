@@ -3,7 +3,6 @@
 #include "defs.h"
 #include "items.h"
 #include "util.h"
-#include "priority.h"
 #include "actor.h"
 
 ACTOR* actor_create(int y, int x, char *name) {
@@ -42,19 +41,6 @@ void actor_delete(ACTOR *a) {
   free(a->inventory);
 
   free(a);
-}
-
-/* Advances a turn for ALL actors apart from player. */
-void advance_turn() {
-  ACTOR *a;
-  int pri;
-  while ((a = priq_pop(actor_queue, &pri))) {
-    /* Take out actor from the queue, act, put it in a temp queue */
-    actor_act(a);
-    priq_push(temp_queue, a, pri);
-  }
-  /* Put all actors in the temp queue back into the main queue */
-  priq_combine(actor_queue, temp_queue);
 }
 
 int can_move(ACTOR *a, int dy, int dx) {

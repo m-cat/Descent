@@ -39,7 +39,6 @@ char* cinput(int y, int x, int max, int type) {
   return str;
 }
 
-#define OFFSET_NOT 1 /* x-offset for notification message */
 void draw_notify(int scr_width) {
   DUNGEON_BLOCK *block;
   ACTOR *a;
@@ -59,16 +58,12 @@ void draw_notify(int scr_width) {
     if (stash != NULL) {
       item_n = TCOD_list_peek(*stash);
       if (item_n != NULL) {
-	subject = subject_form(item_n->item->art, item_n->n,
-			       item_n->item->name);
-	sentence = string_create(2, (item_n->n == 1) ?
-				 "There's " : "There are ", subject);
-	cprint(0, OFFSET_NOT, TCOD_white, TCOD_black,
-	       "%s at your feet. %c%c%c%c%s",
-	       sentence, TCOD_COLCTRL_FORE_RGB, 1, 255, 1,
-	       (TCOD_list_size(*stash) > 1) ? "[more] " : "");
-	free(subject);
-	free(sentence);
+		subject = subject_form(item_n->item->art, item_n->n, item_n->item->name);
+		sentence = string_create(2, (item_n->n == 1) ? "There's " : "There are ", subject);
+		cprint(0, OFFSET_NOT, TCOD_white, TCOD_black, "%s at your feet. %c%c%c%c%s",
+			   sentence, TCOD_COLCTRL_FORE_RGB, 1, 255, 1, (TCOD_list_size(*stash) > 1) ? "[more] " : "");
+		free(subject);
+		free(sentence);
       }
     }
     break;
@@ -121,10 +116,9 @@ void draw_view(int scr_width, int scr_height) {
     for (j = CAMERA_X-scr_width/2; j <= CAMERA_X+scr_width/2; j++) {
       drawi = i-CAMERA_Y+scr_height/2, drawj = j-CAMERA_X+scr_width/2;
       /* Check if out of bounds */
-      if (i < DUNGEON_Y || i >= DUNGEON_Y+CURRENT_HEIGHT ||
-	  j < DUNGEON_X || j >= DUNGEON_X+CURRENT_WIDTH) {
-	cprint(drawi, drawj, TCOD_white, TCOD_black, " ");
-	continue;
+      if (i < DUNGEON_Y || i >= DUNGEON_Y+CURRENT_HEIGHT || j < DUNGEON_X || j >= DUNGEON_X+CURRENT_WIDTH) {
+		cprint(drawi, drawj, TCOD_white, TCOD_black, " ");
+		continue;
       }
       /* Check if not explored */
       else if (!CHK_EXPLORED(i, j)) {
@@ -136,8 +130,8 @@ void draw_view(int scr_width, int scr_height) {
       assert(block != NULL);
       /* Check if not visible */
       if (!CHK_VISIBLE(i, j)) {
-	cprint(drawi, drawj, block->col_nonvis, TCOD_black, "%c", block->ch);
-	continue;
+		cprint(drawi, drawj, block->col_nonvis, TCOD_black, "%c", block->ch);
+		continue;
       }
       /* Draw the contents of the block
 	 Prioritizes actor > furn > item > tile */
@@ -152,19 +146,18 @@ void draw_view(int scr_width, int scr_height) {
       }
 
       if (a != NULL)
-	cprint(drawi, drawj, a->col, c2, "%c", a->ch);
+		cprint(drawi, drawj, a->col, c2, "%c", a->ch);
       else if (furn != NULL)
-	cprint(drawi, drawj, furn->col, c2, "%c", furn->ch);
+		cprint(drawi, drawj, furn->col, c2, "%c", furn->ch);
       else if (item != NULL)
-	cprint(drawi, drawj, item->col, c2, "%c", item->ch);
+		cprint(drawi, drawj, item->col, c2, "%c", item->ch);
       else
-	cprint(drawi, drawj, block->col_vis, c2, "%c", block->ch);
+		cprint(drawi, drawj, block->col_vis, c2, "%c", block->ch);
 
       /* Set square being examined to yellow and black */
       if (INPUT_MODE == INPUT_LOOK && i == LOOK_Y && j == LOOK_X) {
-	TCOD_console_set_char_foreground(NULL, drawj, drawi, TCOD_black);
-	TCOD_console_set_char_background(NULL, drawj, drawi, TCOD_amber,
-					 TCOD_BKGND_SET);
+		TCOD_console_set_char_foreground(NULL, drawj, drawi, TCOD_black);
+		TCOD_console_set_char_background(NULL, drawj, drawi, TCOD_amber, TCOD_BKGND_SET);
       }
     }
 }
@@ -249,8 +242,7 @@ void draw_ui(int ui_x, int ui_y) {
      /* Draw name */
     for (j = ui_x+2; j <= CON_WIDTH-2; j++)
       cprint(ui_y+1, j, TCOD_lime, TCOD_black, "~");
-    cprint_center(ui_y+1, ui_x+UI_WIDTH/2+1,
-		  TCOD_white, TCOD_black, " %s ", player->name);
+    cprint_center(ui_y+1, ui_x+UI_WIDTH/2+1, TCOD_white, TCOD_black, " %s ", player->name);
 
     /* Draw level and exp */
     cprint(ui_y+3, ui_x+3, TCOD_white, TCOD_black, "Level: %d", player->level);
@@ -258,29 +250,13 @@ void draw_ui(int ui_x, int ui_y) {
 	   "Exp: %d / %d", player->exp, player->level*100);
 
     /* Draw depth and turn*/
-    cprint_right(ui_y+3, CON_WIDTH-3, TCOD_white, TCOD_black,
-		 "Depth: %d", DEPTH);
-    cprint_right(ui_y+4, CON_WIDTH-3, TCOD_white, TCOD_black,
-		 "Turn: %d", TURN_COUNT+1);
+    cprint_right(ui_y+3, CON_WIDTH-3, TCOD_white, TCOD_black, "Depth: %d", DEPTH);
 
     /* Draw hp and mp */
-#define OFFSET_HP 7
-    cprint(ui_y+OFFSET_HP, ui_x+8, TCOD_white, TCOD_black,
-	   "%d / %d", player->hp_cur, player->hp_max);
-    cprint(ui_y+OFFSET_HP+1, ui_x+3, TCOD_white, TCOD_black, "HP: [");
-    for (j = ui_x+8; j < CON_WIDTH-3; j++)
-      cprint(ui_y+OFFSET_HP+1, j, TCOD_flame, TCOD_black, "=");
-    cprint(ui_y+OFFSET_HP+1, CON_WIDTH-3, TCOD_white, TCOD_black, "]");
-
-    cprint(ui_y+OFFSET_HP+3, ui_x+8, TCOD_white, TCOD_black,
-	   "%d / %d", player->mp_cur, player->mp_max);
-    cprint(ui_y+OFFSET_HP+4, ui_x+3, TCOD_white, TCOD_black, "MP: [");
-    for (j = ui_x+8; j < CON_WIDTH-3; j++)
-      cprint(ui_y+OFFSET_HP+4, j, TCOD_azure, TCOD_black, "=");
-    cprint(ui_y+OFFSET_HP+4, CON_WIDTH-3, TCOD_white, TCOD_black, "]");
+    cprint(ui_y+OFFSET_HP_Y, ui_x+OFFSET_HP_X, TCOD_white, TCOD_black, "HP: %d / %d", player->hp_cur, player->hp_max);
+    cprint(ui_y+OFFSET_MP_Y, ui_x+OFFSET_MP_X, TCOD_white, TCOD_black, "MP: %d / %d", player->mp_cur, player->mp_max);
 
     /* Draw weapon name */
-#define OFFSET_WEP 14
     if (player->weapon == NULL) {
       subject = string_create(1,"none");
       c = TCOD_grey;
@@ -294,7 +270,6 @@ void draw_ui(int ui_x, int ui_y) {
     free(subject);
 
     /* Draw messages */
-#define OFFSET_MSG 12
     for (j = ui_x+1; j < CON_WIDTH; j++)
       cprint(CON_HEIGHT-OFFSET_MSG, j, TCOD_white, TCOD_black, "~");
 

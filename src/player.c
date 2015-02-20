@@ -61,15 +61,29 @@ int attempt_move(int dy, int dx) {
    Tries to perform a player action corresponding to the pressed key.
    Returns 1 if an action was peformed. */
 
-#define handle_direction(dy, dx)					\
-  ((INPUT_MODE==INPUT_ACTION) ? attempt_move(dy, dx) :			\
-   ((INPUT_MODE==INPUT_SCROLL) ? (handle_scroll(dy, dx), 0) :		\
-    ((INPUT_MODE==INPUT_LOOK) ? (handle_look(dy, dx), 0) :		\
-     ((INPUT_MODE==INPUT_INVENTORY) ? handle_inv(dy, dx), 0 :		\
-      0))))
+int handle_direction(dy, dx) {
+  switch (INPUT_MODE) {
+	  case INPUT_ACTION:
+		  return attempt_move(dy, dx);
+		  break;
+	  case INPUT_SCROLL:
+		  handle_scroll(dy, dx);
+		  return 0;
+		  break;
+	  case INPUT_LOOK:
+		  handle_look(dy, dx);
+		  return 0;
+		  break;
+	  case INPUT_INVENTORY:
+		  handle_inv(dy, dx);
+		  return 0;
+		  break;
+	  default:
+		  return 0;
+  }
+}
 
-int handle_input(TCOD_event_t ev, TCOD_keycode_t key, char ch, int ctrl,
-		 int m_x, int m_y) {
+int handle_input(TCOD_event_t ev, TCOD_keycode_t key, char ch, int ctrl, int m_x, int m_y) {
   int ret = 0, i;
 
   /* Change input modes */
@@ -88,15 +102,14 @@ int handle_input(TCOD_event_t ev, TCOD_keycode_t key, char ch, int ctrl,
     INPUT_MODE = INPUT_MESSAGE;
   else if ((INPUT_MODE == INPUT_ACTION) && ev == TCOD_EVENT_KEY_PRESS && ch=='e')
     INPUT_MODE = INPUT_EQUIP;
-  else if ((INPUT_MODE == INPUT_ACTION || INPUT_MODE == INPUT_LOOK)
-	   && ev == TCOD_EVENT_MOUSE_PRESS) {
+  else if ((INPUT_MODE == INPUT_ACTION || INPUT_MODE == INPUT_LOOK) && ev == TCOD_EVENT_MOUSE_PRESS) {
     m_y += player->y-CON_HEIGHT/2;
     m_x += player->x-(CON_WIDTH-UI_WIDTH)/2;
     if (CHK_VISIBLE(m_y, m_x)) {
       if (INPUT_MODE == INPUT_LOOK && LOOK_Y == m_y && LOOK_X == m_x)
-	INPUT_MODE = INPUT_ACTION;
+		INPUT_MODE = INPUT_ACTION;
       else
-	INPUT_MODE = INPUT_LOOK;
+		INPUT_MODE = INPUT_LOOK;
       LOOK_Y = m_y;
       LOOK_X = m_x;
     }

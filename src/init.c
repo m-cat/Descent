@@ -1,32 +1,33 @@
 #include <libtcod.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 #include "defs.h"
 #include "priority.h"
 #include "util.h"
+#include "system.h"
 #include "dungeon.h"
 #include "player.h"
+#include "system.h"
 #include "init.h"
 
-ACTOR*			current_actor;
-ITEM*			current_item;
-DUNGEON_BLOCK*	current_block;
+ACTOR			*current_actor;
+ITEM			*current_item;
+DUNGEON_BLOCK	*current_block;
 
 /* Define actor_parser listener */
-bool actor_parser_new_struct(TCOD_parser_struct_t str, const char* name) {
+bool actor_parser_new_struct(TCOD_parser_struct_t str, const char *name) {
 	current_actor = calloc(sizeof(ACTOR), 1);
-	current_actor->name = strdup(name);
+	current_actor->name = str_copy(name);
 	return true;
 }
 
-bool actor_parser_flag(const char* name) {
+bool actor_parser_flag(const char *name) {
 	return true;
 }
 
-bool actor_parser_property(const char* name, TCOD_value_type_t type, TCOD_value_t value) {
+bool actor_parser_property(const char *name, TCOD_value_type_t type, TCOD_value_t value) {
 	if (strcmp(name, "art") == 0) {
-		current_actor->art = strdup(value.s);
+		current_actor->art = str_copy(value.s);
 	}
 	else if (strcmp(name, "type") == 0) {
 		current_actor->type = value.i;
@@ -44,13 +45,13 @@ bool actor_parser_property(const char* name, TCOD_value_type_t type, TCOD_value_
 	return true;
 }
 
-bool actor_parser_end_struct(TCOD_parser_struct_t str, const char* name) {
-	TCOD_list_push(actor_type_list, (const void*) current_actor);
+bool actor_parser_end_struct(TCOD_parser_struct_t str, const char *name) {
+	TCOD_list_push(actor_type_list, (const void *) current_actor);
 	return true;
 }
 
-void actor_parser_error(const char* msg) {
-	fprintf(stderr, msg);
+void actor_parser_error(const char *msg) {
+	err_print(msg);
 	exit(1);
 }
 
@@ -63,19 +64,19 @@ TCOD_parser_listener_t	actor_listener = {
 };
 
 /* Define item_parser listener */
-bool item_parser_new_struct(TCOD_parser_struct_t str, const char* name) {
+bool item_parser_new_struct(TCOD_parser_struct_t str, const char *name) {
 	current_item = calloc(sizeof(ITEM), 1);
-	current_item->name = strdup(name);
+	current_item->name = str_copy(name);
 	return true;
 }
 
-bool item_parser_flag(const char* name) {
+bool item_parser_flag(const char *name) {
 	return true;
 }
 
-bool item_parser_property(const char* name, TCOD_value_type_t type, TCOD_value_t value) {
+bool item_parser_property(const char *name, TCOD_value_type_t type, TCOD_value_t value) {
 	if (strcmp(name, "art") == 0) {
-		current_item->art = strdup(value.s);
+		current_item->art = str_copy(value.s);
 	}
 	else if (strcmp(name, "type") == 0) {
 		current_item->type = value.i;
@@ -90,13 +91,13 @@ bool item_parser_property(const char* name, TCOD_value_type_t type, TCOD_value_t
 	return true;
 }
 
-bool item_parser_end_struct(TCOD_parser_struct_t str, const char* name) {
-	TCOD_list_push(item_type_list, (const void*) current_item);
+bool item_parser_end_struct(TCOD_parser_struct_t str, const char *name) {
+	TCOD_list_push(item_type_list, (const void *) current_item);
 	return true;
 }
 
-void item_parser_error(const char* msg) {
-	fprintf(stderr, msg);
+void item_parser_error(const char *msg) {
+	err_print(msg);
 	exit(1);
 }
 
@@ -109,19 +110,19 @@ TCOD_parser_listener_t	item_listener = {
 };
 
 /* Define block_parser listener */
-bool block_parser_new_struct(TCOD_parser_struct_t str, const char* name) {
+bool block_parser_new_struct(TCOD_parser_struct_t str, const char *name) {
 	current_block = calloc(sizeof(DUNGEON_BLOCK), 1);
-	current_block->name = strdup(name);
+	current_block->name = str_copy(name);
 	return true;
 }
 
-bool block_parser_flag(const char* name) {
+bool block_parser_flag(const char *name) {
 	return true;
 }
 
-bool block_parser_property(const char* name, TCOD_value_type_t type, TCOD_value_t value) {
+bool block_parser_property(const char *name, TCOD_value_type_t type, TCOD_value_t value) {
 	if (strcmp(name, "art") == 0) {
-		current_block->art = strdup(value.s);
+		current_block->art = str_copy(value.s);
 	}
 	else if (strcmp(name, "type") == 0) {
 		current_block->type = value.i;
@@ -145,7 +146,7 @@ bool block_parser_property(const char* name, TCOD_value_type_t type, TCOD_value_
 	return true;
 }
 
-bool block_parser_end_struct(TCOD_parser_struct_t str, const char* name) {
+bool block_parser_end_struct(TCOD_parser_struct_t str, const char *name) {
 	if (strcmp(current_block->name, "wall") == 0) {
 		block_copy(&block_wall, current_block);
 	}
@@ -153,12 +154,12 @@ bool block_parser_end_struct(TCOD_parser_struct_t str, const char* name) {
 		block_copy(&block_floor, current_block);
 	}
 
-	TCOD_list_push(block_type_list, (const void*) current_block);
+	TCOD_list_push(block_type_list, (const void *) current_block);
 	return true;
 }
 
-void block_parser_error(const char* msg) {
-	fprintf(stderr, msg);
+void block_parser_error(const char *msg) {
+	err_print(msg);
 	exit(1);
 }
 
@@ -210,6 +211,9 @@ int init_all() {
 	int i;
 	/*~~*/
 
+	/* Font must be set before initializing root console */
+	TCOD_console_set_custom_font("courier12x12_aa_tc.png", TCOD_FONT_LAYOUT_TCOD, 0, 0);
+
 	/* Initialize TCOD console */
 	TCOD_console_init_root(CON_WIDTH, CON_HEIGHT, GAME_NAME, 0, TCOD_RENDERER_SDL);
 
@@ -217,7 +221,7 @@ int init_all() {
 	DUNGEON = malloc(MAX_HEIGHT * sizeof(DUNGEON_BLOCK *));
 	for (i = 0; i < MAX_HEIGHT; i++) {
 		DUNGEON[i] = calloc(MAX_WIDTH, sizeof(DUNGEON_BLOCK));
-		assert(DUNGEON[i] != NULL);
+		assert_end(DUNGEON[i] != NULL, "Could not allocate memory.");
 	}
 
 	fov_map = TCOD_map_new(MAX_WIDTH, MAX_HEIGHT);

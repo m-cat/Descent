@@ -23,11 +23,11 @@ pri_queue priq_new(int size) {
 	return q;
 }
 
-void priq_push(pri_queue q, void* data, int pri) {
-	q_elem_t*	b;
-	int			n,
-				m;
-	/*~~~~~~~~~~*/
+void priq_push(pri_queue q, void *data, int pri) {
+	q_elem_t	*b;
+	int			n;
+	int			m;
+	/*~~~~~~~~~~~*/
 
 	if (q->n >= q->alloc) {
 		q->alloc *= 2;
@@ -50,12 +50,12 @@ void priq_push(pri_queue q, void* data, int pri) {
 }
 
 /* remove top item. returns 0 if empty. *pri can be null. */
-void* priq_pop(pri_queue q, int* pri) {
-	void*		out;
-	q_elem_t*	b = q->buf;
-	int			n = 1,
-				m;
-	/*~~~~~~~~~~~~~~~~~~~*/
+void *priq_pop(pri_queue q, int *pri) {
+	void		*out;
+	q_elem_t	*b = q->buf;
+	int			n = 1;
+	int			m;
+	/*~~~~~~~~~~~~~~~~~~~~*/
 
 	if (q->n == 1) {
 		return 0;
@@ -91,7 +91,7 @@ void* priq_pop(pri_queue q, int* pri) {
 }
 
 /* get the top element without removing it from queue */
-void* priq_top(pri_queue q, int* pri) {
+void *priq_top(pri_queue q, int *pri) {
 	if (q->n == 1) {
 		return 0;
 	}
@@ -106,8 +106,8 @@ void* priq_top(pri_queue q, int* pri) {
 /* this is O(n log n), but probably not the best */
 void priq_combine(pri_queue q, pri_queue q2) {
 	int			i;
-	q_elem_t*	e = q2->buf + 1;
-	/*~~~~~~~~~~~~~~~~~~~~~~~~*/
+	q_elem_t	*e = q2->buf + 1;
+	/*~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
 	for (i = q2->n - 1; i >= 1; i--, e++) {
 		priq_push(q, e->data, e->pri);

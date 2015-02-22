@@ -1,23 +1,24 @@
 #include <stdlib.h>
 #include <string.h>
 #include <libtcod.h>
-#include <assert.h>
 #include "defs.h"
+#include "util.h"
+#include "system.h"
 #include "io.h"
 #include "items.h"
 
-void item_copy(ITEM* dest, ITEM* source) {
+void item_copy(ITEM *dest, ITEM *source) {
 	*dest = *source;
-	dest->name = strdup(source->name);
-	dest->art = strdup(source->art);
+	dest->name = str_copy(source->name);
+	dest->art = str_copy(source->art);
 }
 
-ITEM* item_create(char* name) {
-	ITEM **	 iterator;
-	ITEM*	item;
-	/*~~~~~~~~~~~~~*/
+ITEM *item_create(char *name) {
+	ITEM	**iterator;
+	ITEM	*item;
+	/*~~~~~~~~~~~~~~~*/
 
-	for (iterator = (ITEM**) TCOD_list_begin(item_type_list); iterator != (ITEM**) TCOD_list_end(item_type_list); iterator++) {
+	for (iterator = (ITEM **) TCOD_list_begin(item_type_list); iterator != (ITEM **) TCOD_list_end(item_type_list); iterator++) {
 		if (strcmp(name, (*iterator)->name) == 0) {
 			item = malloc(sizeof(ITEM));
 			item_copy(item, (*iterator));
@@ -31,29 +32,29 @@ ITEM* item_create(char* name) {
 /* Returns a pointer to the top stack's item. Does NOT remove the item from the
  * stash
  */
-ITEM* item_get_top(int y, int x) {
-	ITEM_N*		item_n;
-	/*~~~~~~~~~~~~~~~*/
+ITEM *item_get_top(int y, int x) {
+	ITEM_N	*item_n;
+	/*~~~~~~~~~~~~*/
 
 	if (DUNGEON[y][x].stash == NULL || TCOD_list_is_empty(*(DUNGEON[y][x].stash))) {
 		return NULL;
 	}
 
-	item_n = (ITEM_N*) TCOD_list_peek(*(DUNGEON[y][x].stash));
+	item_n = (ITEM_N *) TCOD_list_peek(*(DUNGEON[y][x].stash));
 	return item_n->item;
 }
 
 /* Removes and returns an item from position i in the stash */
-ITEM* item_pickup(int y, int x, int i) {
-	ITEM*		item;
-	ITEM_N*		item_n;
-	/*~~~~~~~~~~~~~~~*/
+ITEM *item_pickup(int y, int x, int i) {
+	ITEM	*item;
+	ITEM_N	*item_n;
+	/*~~~~~~~~~~~~*/
 
 	if (i == -1) {
-		item_n = (ITEM_N*) TCOD_list_peek(*(DUNGEON[y][x].stash));
+		item_n = (ITEM_N *) TCOD_list_peek(*(DUNGEON[y][x].stash));
 	}
 	else {
-		item_n = (ITEM_N*) TCOD_list_get(*(DUNGEON[y][x].stash), i);
+		item_n = (ITEM_N *) TCOD_list_get(*(DUNGEON[y][x].stash), i);
 	}
 
 	item = malloc(sizeof(ITEM));
@@ -62,7 +63,7 @@ ITEM* item_pickup(int y, int x, int i) {
 		item_n->n--;
 	}
 	else {
-		TCOD_list_remove(*(DUNGEON[y][x].stash), (const void*) item_n);
+		TCOD_list_remove(*(DUNGEON[y][x].stash), (const void *) item_n);
 		item_delete(item_n->item);
 		free(item_n);
 	}
@@ -70,11 +71,11 @@ ITEM* item_pickup(int y, int x, int i) {
 	return item;
 }
 
-void item_drop(int y, int x, ITEM* item) {
-	ITEM_N*			item_n;
-	ITEM_N **		 iterator;
-	TCOD_list_t*	stash = DUNGEON[y][x].stash;
-	/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+void item_drop(int y, int x, ITEM *item) {
+	ITEM_N		*item_n;
+	ITEM_N		**iterator;
+	TCOD_list_t *stash = DUNGEON[y][x].stash;
+	/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
 	if (stash == NULL) {
 		stash = malloc(sizeof(TCOD_list_t));
@@ -83,7 +84,7 @@ void item_drop(int y, int x, ITEM* item) {
 	else {
 
 		/* Search for preexisting stack of the same item */
-		for (iterator = (ITEM_N**) TCOD_list_begin(*stash); iterator != (ITEM_N**) TCOD_list_end(*stash); iterator++) {
+		for (iterator = (ITEM_N **) TCOD_list_begin(*stash); iterator != (ITEM_N **) TCOD_list_end(*stash); iterator++) {
 			if (strcmp((*iterator)->item->name, item->name) == 0) {
 				(*iterator)->n++;
 				item_delete(item);
@@ -96,23 +97,22 @@ void item_drop(int y, int x, ITEM* item) {
 	item_n = malloc(sizeof(ITEM_N));
 	item_n->item = item;
 	item_n->n = 1;
-	TCOD_list_push(*stash, (const void*) item_n);
+	TCOD_list_push(*stash, (const void *) item_n);
 
 	DUNGEON[y][x].stash = stash;
 }
 
-void item_place(int y, int x, char* name) {
-	ITEM*	item = item_create(name);
-	/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+void item_place(int y, int x, char *name) {
+	ITEM	*item = item_create(name);
+	/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
-	/* TODO: add error message if item not found */
-	assert(item != NULL);
+	assert_end(item != NULL, "Corrupted item data.");
 	item_drop(y, x, item);
 }
 
-void item_delete(ITEM* item) {
-	assert(item != NULL);
-	assert(item->name != NULL);
+void item_delete(ITEM *item) {
+	assert_end(item != NULL, "Corrupted item data.");
+	assert_end(item->name != NULL, "Corrupted item data.");
 	free(item->name);
 	free(item->art);
 	free(item);

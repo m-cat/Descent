@@ -1,8 +1,8 @@
 #include <stdlib.h>
-#include <assert.h>
 #include <libtcod.h>
 #include "defs.h"
 #include "util.h"
+#include "system.h"
 #include "dungeon.h"
 #include "actor.h"
 #include "player.h"
@@ -10,6 +10,7 @@
 #include "io.h"
 #include "menu.h"
 #include "init.h"
+#include "ui.h"
 #include "priority.h"
 
 int main() {
@@ -66,7 +67,7 @@ start:
 
 /* Advances a turn for ALL actors apart from player. */
 void advance_turn() {
-	ACTOR*	a;
+	ACTOR	*a;
 	int		pri;
 	/*~~~~~~~~*/
 

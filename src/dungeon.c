@@ -1,6 +1,5 @@
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 #include <libtcod.h>
 #include "defs.h"
 #include "util.h"
@@ -8,23 +7,23 @@
 #include "items.h"
 #include "actor.h"
 #include "player.h"
+#include "system.h"
 #include "dungeon.h"
 
 /* Use this to make a copy of the block's resources. Usually doing dest = source
  * is fine, though.
  */
-void block_copy(DUNGEON_BLOCK* dest, DUNGEON_BLOCK* source) {
+void block_copy(DUNGEON_BLOCK *dest, DUNGEON_BLOCK *source) {
 	*dest = *source;
-	dest->name = strdup(source->name);
-	dest->art = strdup(source->art);
+	dest->name = str_copy(source->name);
+	dest->art = str_copy(source->art);
 }
 
-void block_create(int y, int x, char* name) {
-	DUNGEON_BLOCK **	 iterator;
-	/*~~~~~~~~~~~~~~~~~~~~~~~~~*/
+void block_create(int y, int x, char *name) {
+	DUNGEON_BLOCK	**iterator;
+	/*~~~~~~~~~~~~~~~~~~~~~~~*/
 
-	for (iterator = (DUNGEON_BLOCK**) TCOD_list_begin(block_type_list);
-		 iterator != (DUNGEON_BLOCK**) TCOD_list_end(block_type_list); iterator++) {
+	for (iterator = (DUNGEON_BLOCK **) TCOD_list_begin(block_type_list); iterator != (DUNGEON_BLOCK **) TCOD_list_end(block_type_list); iterator++) {
 		if (strcmp(name, (*iterator)->name) == 0) {
 			DUNGEON[y][x] = (**iterator);
 			return;
@@ -51,11 +50,11 @@ void CLR_OPTS(int y, int x) {
 }
 
 void CLR_BLOCK(int y, int x) {
-	ITEM_N*			iterator;
-	DUNGEON_BLOCK*	block = &DUNGEON[y][x];
-	/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+	ITEM_N			*iterator;
+	DUNGEON_BLOCK	*block = &DUNGEON[y][x];
+	/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
-	assert(block != NULL);
+	assert_end(block != NULL, "Corrupted dungeon data.");
 	CLR_OPTS(y, x);
 	block->name = NULL;
 	block->art = NULL;
@@ -82,10 +81,10 @@ void CLR_BLOCK(int y, int x) {
 
 /* Clear all data from every dungeon block. Set the dungeon to be all walls. */
 void dungeon_clear() {
-	int		i,
-			j,
-			pri;
-	ACTOR*	a;
+	int		i;
+	int		j;
+	int		pri;
+	ACTOR	*a;
 	/*~~~~~~~~*/
 
 	/* Clear all blocks */
@@ -112,12 +111,12 @@ void dungeon_clear() {
  * That is, elements will be shifted over to simulate a negatively-expanded grid.
  */
 void dungeon_resize(int resize_x, int resize_y) {
-	int i,
-		j;
-	int prev_height = MAX_HEIGHT,
-		prev_width = MAX_WIDTH;
-	int abs_resize_y = ABS(resize_y),
-		abs_resize_x = ABS(resize_x);
+	int i;
+	int j;
+	int prev_height = MAX_HEIGHT;
+	int prev_width = MAX_WIDTH;
+	int abs_resize_y = ABS(resize_y);
+	int abs_resize_x = ABS(resize_x);
 	/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
 	if (resize_y < 0) {
@@ -131,6 +130,7 @@ void dungeon_resize(int resize_x, int resize_y) {
 	if (resize_y) {
 		MAX_HEIGHT += abs_resize_y;
 		DUNGEON = realloc(DUNGEON, MAX_HEIGHT * sizeof(DUNGEON_BLOCK *));
+		assert_end(DUNGEON != NULL, "Could not allocate memory");
 
 		/* If resize_y < 0, shift over all the rows */
 		if (resize_y < 0) {
@@ -189,8 +189,8 @@ void dungeon_resize(int resize_x, int resize_y) {
 }
 
 void dungeon_set_fov() {
-	int i,
-		j;
+	int i;
+	int j;
 	/*~~*/
 
 	fov_map = TCOD_map_new(MAX_WIDTH, MAX_HEIGHT);
@@ -235,21 +235,38 @@ void dungeon_gen_maze(int x, int y, int maze_x, int maze_y, int width, int heigh
 	SET_FLOOR(y, x);
 	while ((d = random_valid_path(x, y, maze_x, maze_y, width, height)) != DIR_NONE) {
 		switch (d) {
-			case DIR_N: SET_FLOOR(y - 1, x); dungeon_gen_maze(x, y - 2, maze_x, maze_y, width, height); break;
-			case DIR_E: SET_FLOOR(y, x + 1); dungeon_gen_maze(x + 2, y, maze_x, maze_y, width, height); break;
-			case DIR_S: SET_FLOOR(y + 1, x); dungeon_gen_maze(x, y + 2, maze_x, maze_y, width, height); break;
-			case DIR_W: SET_FLOOR(y, x - 1); dungeon_gen_maze(x - 2, y, maze_x, maze_y, width, height); break;
-			default:	break;
+			case DIR_N:
+				SET_FLOOR(y - 1, x);
+				dungeon_gen_maze(x, y - 2, maze_x, maze_y, width, height);
+				break;
+
+			case DIR_E:
+				SET_FLOOR(y, x + 1);
+				dungeon_gen_maze(x + 2, y, maze_x, maze_y, width, height);
+				break;
+
+			case DIR_S:
+				SET_FLOOR(y + 1, x);
+				dungeon_gen_maze(x, y + 2, maze_x, maze_y, width, height);
+				break;
+
+			case DIR_W:
+				SET_FLOOR(y, x - 1);
+				dungeon_gen_maze(x - 2, y, maze_x, maze_y, width, height);
+				break;
+
+			default:
+				break;
 		}
 	}
 }
 
 void dungeon_gen_cave(int goal) {
-	int i = 1,
-		x = MAX_WIDTH / 2,
-		y = MAX_HEIGHT / 2,
-		resize_x,
-		resize_y;
+	int i = 1;
+	int x = MAX_WIDTH / 2;
+	int y = MAX_HEIGHT / 2;
+	int resize_x;
+	int resize_y;
 	/*~~~~~~~~~~~~~~~~~~~*/
 
 	CURRENT_HEIGHT = CURRENT_WIDTH = 3;
@@ -258,11 +275,24 @@ void dungeon_gen_cave(int goal) {
 
 	while (i < goal) {
 		switch (rand_int(DIR_N, DIR_W)) {
-			case DIR_N: y -= 1; break;
-			case DIR_E: x += 1; break;
-			case DIR_S: y += 1; break;
-			case DIR_W: x -= 1; break;
-			default:	break;
+			case DIR_N:
+				y -= 1;
+				break;
+
+			case DIR_E:
+				x += 1;
+				break;
+
+			case DIR_S:
+				y += 1;
+				break;
+
+			case DIR_W:
+				x -= 1;
+				break;
+
+			default:
+				break;
 		}
 
 		if (DUNGEON[y][x].type == TILE_WALL) {
@@ -285,7 +315,7 @@ void dungeon_gen_cave(int goal) {
 			}
 
 			/* When we hit an edge, we shift over the whole dungeon by 128 and update all the
-			 * variables accordingly
+			 * variables accordingl
 			 */
 			resize_x = 128 * (DUNGEON_X + CURRENT_WIDTH >= MAX_WIDTH - 1) - 128 * (DUNGEON_X <= 1);
 			resize_y = 128 * (DUNGEON_Y + CURRENT_HEIGHT >= MAX_HEIGHT - 1) - 128 * (DUNGEON_Y <= 1);
@@ -325,9 +355,13 @@ void dungeon_gen_reg(int rm_size_min, int rm_size_max) {
 void dungeon_place_items() {
 
 	/* Place items */
-	int i = 12,
-		x,
-		y;
+	int i = 12;
+
+	/* Place items */
+	int x;
+
+	/* Place items */
+	int y;
 	/*~~~~~~~*/
 
 	while (i-- > 0) {
@@ -345,9 +379,13 @@ void dungeon_place_items() {
 void dungeon_place_enemies() {
 
 	/* Place enemies */
-	int i = 50,
-		x,
-		y;
+	int i = 50;
+
+	/* Place enemies */
+	int x;
+
+	/* Place enemies */
+	int y;
 	/*~~~~~~~*/
 
 	while (i-- > 0) {

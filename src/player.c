@@ -5,9 +5,10 @@
 #include "items.h"
 #include "actor.h"
 #include "dungeon.h"
+#include "system.h"
 #include "player.h"
 
-ACTOR*	player = NULL;
+ACTOR	*player = NULL;
 
 void player_place(int y, int x) {
 
@@ -30,8 +31,8 @@ void handle_scroll(int dy, int dx) {
 }
 
 void handle_look(int dy, int dx) {
-	int new_y = LOOK_Y + dy,
-		new_x = LOOK_X + dx;
+	int new_y = LOOK_Y + dy;
+	int new_x = LOOK_X + dx;
 	/*~~~~~~~~~~~~~~~~~~~~*/
 
 	if (CHK_IN_VIEW(new_y, new_x)) {
@@ -51,8 +52,8 @@ void handle_inv(int dy, int dx) {
 }
 
 int attempt_move(int dy, int dx) {
-	ACTOR*	a;
-	/*~~~~~~*/
+	ACTOR	*a;
+	/*~~~~~~~*/
 
 	if (can_move(player, dy, dx)) {
 		actor_move(player, dy, dx);
@@ -69,21 +70,37 @@ int attempt_move(int dy, int dx) {
 
 /* Possible modes: - Action, Examine, Scroll, Inventory, Message, Equip Action
  * Mode: Tries to perform a player action corresponding to the pressed key.
- * Returns 1 if an action was peformed.
+ * Returns 1 if an action was peformed
  */
-int handle_direction(dy, dx) {
+int handle_direction(int dy, int dx) {
 	switch (INPUT_MODE) {
-		case INPUT_ACTION:		return attempt_move(dy, dx); break;
-		case INPUT_SCROLL:		handle_scroll(dy, dx); return 0; break;
-		case INPUT_LOOK:		handle_look(dy, dx); return 0; break;
-		case INPUT_INVENTORY:	handle_inv(dy, dx); return 0; break;
-		default:				return 0;
+		case INPUT_ACTION:
+			return attempt_move(dy, dx);
+			break;
+
+		case INPUT_SCROLL:
+			handle_scroll(dy, dx);
+			return 0;
+			break;
+
+		case INPUT_LOOK:
+			handle_look(dy, dx);
+			return 0;
+			break;
+
+		case INPUT_INVENTORY:
+			handle_inv(dy, dx);
+			return 0;
+			break;
+
+		default:
+			return 0;
 	}
 }
 
 int handle_input(TCOD_event_t ev, TCOD_keycode_t key, char ch, int ctrl, int m_x, int m_y) {
-	int ret = 0,
-		i;
+	int ret = 0;
+	int i;
 	/*~~~~~~~~*/
 
 	/* Change input modes */
@@ -262,8 +279,9 @@ int handle_input(TCOD_event_t ev, TCOD_keycode_t key, char ch, int ctrl, int m_x
 							dungeon_next();
 							ret = 1;
 						}
-						else
-							;
+						else {
+							message_add("You can't go up here", ".");
+						}
 					}
 					break;
 
@@ -275,8 +293,9 @@ int handle_input(TCOD_event_t ev, TCOD_keycode_t key, char ch, int ctrl, int m_x
 							dungeon_next();
 							ret = 1;
 						}
-						else
-							;
+						else {
+							message_add("You can't go down here", ".");
+						}
 					}
 					break;
 

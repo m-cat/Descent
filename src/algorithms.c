@@ -1,10 +1,10 @@
 #include <stdlib.h>
 #include <math.h>
-#include <assert.h>
 #include <libtcod.h>
 #include "defs.h"
 #include "util.h"
 #include "player.h"
+#include "system.h"
 #include "algorithms.h"
 
 #define VIS_SET(x, y)				(SET_VISIBLE(y, x, 1), SET_EXPLORED(y, x, 1))
@@ -13,11 +13,11 @@
 #define FLT_LTE(n1, n2)				((n1) < (n2) || abs((n2) - (n1)) < .001)
 
 void calc_fov() {
-	int		i,
-			j;
-	ACTOR*	a;
-	char*	subject;
-	/*~~~~~~~~~~~~*/
+	int		i;
+	int		j;
+	ACTOR	*a;
+	char	*subject;
+	/*~~~~~~~~~~~~~*/
 
 	TCOD_map_compute_fov(fov_map, player->x, player->y, FOV_RADIUS, 1, FOV_SHADOW);
 	for (i = MAX(DUNGEON_Y, CAMERA_Y - CON_HEIGHT + 1); i < MIN(DUNGEON_Y + CURRENT_HEIGHT, CAMERA_Y + CON_HEIGHT); i++) {

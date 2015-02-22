@@ -8,11 +8,6 @@
 #include "defs.h"
 #include "util.h"
 
-/* Expand this function to do any needed cleanup in the future TODO: SAVING */
-void game_end() {
-	exit(0);
-}
-
 int is_alpha(int c) {
 	return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
 }
@@ -28,7 +23,7 @@ int is_alphanum(int c) {
 
 /* Example usage: printf("You see here %s %s!\n", a_or_an(name), name);
  */
-int _a_or_an(const char* s) {
+int _a_or_an(const char *s) {
 	switch (s[0]) {
 		case 'a':
 		case 'e':
@@ -42,18 +37,18 @@ int _a_or_an(const char* s) {
 	}
 }
 
-void capitalize(char* s) {
+void capitalize(char *s) {
 	s[0] = toupper(s[0]);
 }
 
 /* Input: arg count, strings to be concatenated. Returns: pointer to string
  * (should be freed)
  */
-char* string_create(int argc, ...) {
+char *string_create(int argc, ...) {
 	va_list args;
-	int		j,
-			len = 0;
-	char*	buf;
+	int		j;
+	int		len = 0;
+	char	*buf;
 	/*~~~~~~~~~~~~*/
 
 	va_start(args, argc);
@@ -73,11 +68,11 @@ char* string_create(int argc, ...) {
 	return buf;
 }
 
-char* subject_form(char* article, int num, char* subject) {
-	char*	art;
-	char*	plur;
-	char*	ret;
-	/*~~~~~~~~~*/
+char *subject_form(char *article, int num, char *subject) {
+	char	*art;
+	char	*plur;
+	char	*ret;
+	/*~~~~~~~~~~*/
 
 	if (strcmp(article, "you") == 0) {
 		return string_create(1, "you"); /* return a malloc'd string */
@@ -88,7 +83,7 @@ char* subject_form(char* article, int num, char* subject) {
 	}
 	else {
 		art = malloc(16);
-		itoa(art, num, 10);
+		inttostr(art, num, 10);
 	}
 
 	plur = (num > 1) ? "s" : "";
@@ -107,11 +102,10 @@ char* subject_form(char* article, int num, char* subject) {
 	return ret;
 }
 
-char* sentence_form(char*  article1, int num1, char*  subject, char*  verb_sing, char*	verb_plur, char*  article2, int num2,
-					char*  object) {
-	char*	art1,
-			*art2;
-	char*	ret;
+char *sentence_form(char *article1, int num1, char *subject, char *verb_sing, char *verb_plur, char *article2, int num2, char *object) {
+	char	*art1;
+	char	*art2;
+	char	*ret;
 	/*~~~~~~~~~~*/
 
 	art1 = subject_form(article1, num1, subject);
@@ -130,45 +124,10 @@ char* sentence_form(char*  article1, int num1, char*  subject, char*  verb_sing,
 	return ret;
 }
 
-/* Adds a string to the message list. str must have been malloc'd. */
-void message_add(char* str, char* punc) {
-	char*	first = str;
-	char*	add;						/* additional lines */
-	int		cutoff;
-	/*~~~~~~~~~~~~~~~~*/
-
-	#define MAX_LEN (UI_WIDTH - 3)
-	while (strlen(str) >= MAX_LEN) {
-		cutoff = MAX_LEN;
-		while (str[cutoff] != ' ') {
-			cutoff--;
-		}
-
-		add = malloc(cutoff + 1);
-		strncpy(add, str, cutoff);
-		add[cutoff] = 0;
-		TCOD_list_push(message_list, (const void*) add);
-		TCOD_list_push(message_turn_list, (const void*) TURN_COUNT);
-		str += cutoff;
-		str[0] = ' ';
-	}
-
-	TCOD_list_push(message_list, (const void*) string_create(2, str, punc));
-	TCOD_list_push(message_turn_list, (const void*) TURN_COUNT);
-	free(first);
-
-	while (TCOD_list_size(message_list) > MESSAGE_LIST_LEN) {
-		first = TCOD_list_get(message_list, 0);
-		TCOD_list_remove(message_list, first);
-		free(first);
-		TCOD_list_remove(message_turn_list, TCOD_list_get(message_turn_list, 0));
-	}
-}
-
 /* Got this from stack overflow */
-char* strdup(const char* s) {
-	char*	d = malloc(strlen(s) + 1);	// Space for length plus nul
-	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+char *str_copy(const char *s) {
+	char	*d = malloc(strlen(s) + 1); // Space for length plus nul
+	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 	if (d == NULL) {
 		return NULL;					// No memory
@@ -202,11 +161,11 @@ int intlen(int a) {
 /* Converts an integer input to its representation in the provided base. Assumes
  * positive input and base <= 16.
  */
-int itoa(char* buffer, long i, int base) {
-	char*	hex_chars = "0123456789abcdef";
+int inttostr(char *buffer, long i, int base) {
+	char	*hex_chars = "0123456789abcdef";
 	char	result[16];
 	char	result2[16] = "";
-	/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+	/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
 	if (i == 0) {
 		strcpy(buffer, "0");
@@ -229,31 +188,28 @@ int itoa(char* buffer, long i, int base) {
  * terms of which sequences are possible. Remember to FREE the string after you're
  * done with it.
  */
-char* name_gen() {
+char *name_gen() {
 
 	/* Define the list of consonant, double consonant, etc. sequences */
-	const char*		consonants = "bdfghklmnprsstv";
-	const char*		start_dconsonants = "brchcltrthdrslwhphblcrfrwrgrstqu";
-	const char*		dconsonants = "brchclcttrthghdrmmttllstqu";
-	const char*		end_dconsonants = "chctthghstrm";
-	const char*		tconsonants = "strthrchr";
-	const char*		vowels = "aaeeiioou";
-	const char*		dvowels = "ioiaai";
-	char*			word = calloc(MAX_NAME_LEN + 1, 1);
-	int				c,
-					m;
-	int				cons_i = strlen(consonants),
-					st_dcons_i = strlen(start_dconsonants) /
-		2,
-					dcons_i = strlen(dconsonants) /
-		2,
-					e_dcons_i = strlen(end_dconsonants) /
-		2,
-					tcons_i = strlen(tconsonants) / 3,
-					vow_i = strlen(vowels),
-					dvow_i = strlen(dvowels) / 2;
+	const char		*consonants = "bdfghklmnprsstv";
+	const char		*start_dconsonants = "brchcltrthdrslwhphblcrfrwrgrstqu";
+	const char		*dconsonants = "brchclcttrthghdrmmttllstqu";
+	const char		*end_dconsonants = "chctthghstrm";
+	const char		*tconsonants = "strthrchr";
+	const char		*vowels = "aaeeiioou";
+	const char		*dvowels = "ioiaai";
+	char			*word = calloc(MAX_NAME_LEN + 1, 1);
+	unsigned int	c;
+	unsigned int	m;
+	unsigned int	cons_i = strlen(consonants);
+	unsigned int	st_dcons_i = strlen(start_dconsonants) / 2;
+	unsigned int	dcons_i = strlen(dconsonants) / 2;
+	unsigned int	e_dcons_i = strlen(end_dconsonants) / 2;
+	unsigned int	tcons_i = strlen(tconsonants) / 3;
+	unsigned int	vow_i = strlen(vowels);
+	unsigned int	dvow_i = strlen(dvowels) / 2;
 	int				vowel = (rand_float(0, 1) < .33) ? 1 : 0;
-	/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+	/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
 	/* Choose initial sequence of letters */
 	if (vowel) {

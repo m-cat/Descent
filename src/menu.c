@@ -1,9 +1,9 @@
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 #include <libtcod.h>
 #include "defs.h"
 #include "util.h"
+#include "system.h"
 #include "io.h"
 #include "player.h"
 #include "menu.h"
@@ -19,10 +19,10 @@ enum MENU_SCREEN
 };
 
 int draw_menu(enum MENU_SCREEN menu) {
-	char*		str,
-				*temp;
-	int			cur_len,
-				max_len;
+	char		*str;
+	char		*temp;
+	int			cur_len;
+	int			max_len;
 	TCOD_key_t	key;
 	/*~~~~~~~~~~~~~~~~*/
 
@@ -101,10 +101,20 @@ main_menu:
 		}
 
 		switch (key.vk) {
-			case TCODK_UP:		MENU_CHOICE = (MENU_CHOICE == 0) ? MENU_NUM_CHOICES - 1 : MENU_CHOICE - 1; break;
-			case TCODK_DOWN:	MENU_CHOICE = (MENU_CHOICE == MENU_NUM_CHOICES - 1) ? 0 : MENU_CHOICE + 1; break;
-			case TCODK_ESCAPE:	return 1; break;
-			default:			break;
+			case TCODK_UP:
+				MENU_CHOICE = (MENU_CHOICE == 0) ? MENU_NUM_CHOICES - 1 : MENU_CHOICE - 1;
+				break;
+
+			case TCODK_DOWN:
+				MENU_CHOICE = (MENU_CHOICE == MENU_NUM_CHOICES - 1) ? 0 : MENU_CHOICE + 1;
+				break;
+
+			case TCODK_ESCAPE:
+				return 1;
+				break;
+
+			default:
+				break;
 		}
 
 		draw_menu(MENU_MAIN);

@@ -10,33 +10,33 @@
 #include "io.h"
 
 /* type = {ALPHA, NUM, ALPHANUMERIC} Returns NULL if user pressed Escape */
-char *cinput(int y, int x, int max, int type) {
-	TCOD_key_t	key;
-	int			cur_len = 0;
-	char		*str = calloc(max + 1, 1);
-	/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+char *cinput(unsigned int y, unsigned int x, unsigned int max, INPUT_TYPE type) {
+    TCOD_key_t      key;
+    unsigned int    cur_len = 0;
+    char            *str = calloc(max + 1, 1);
+    /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
-	do
-	{
-		cprint(y, x, TCOD_white, TCOD_black, "%s_", str);
-		TCOD_console_flush();
+    do
+    {
+        cprint(y, x, TCOD_white, TCOD_black, "%s_", str);
+        TCOD_console_flush();
 
-		TCOD_sys_wait_for_event(TCOD_EVENT_KEY_PRESS, &key, NULL, 1);
-		if (((is_alphanum(key.c) && type == ALPHANUM) || (is_alpha(key.c) && type == ALPHA) || (is_num(key.c) && type == NUMERIC)) && cur_len < max - 1) {
-			str[cur_len++] = key.c;
-			str[cur_len] = 0;
-		}
-		else if ((key.vk == TCODK_BACKSPACE || key.vk == TCODK_DELETE) && cur_len > 0) {
-			str[--cur_len] = 0;
-		}
-		else if (key.c == ' ') {
-			;	/* Implement something here if needed */
-		}
-		else if (key.vk == TCODK_ESCAPE) {
-			free(str);
-			return NULL;
-		}
-	} while ((key.vk != TCODK_ENTER && key.vk != TCODK_KPENTER) || cur_len == 0);
-	assert_end(strlen(str) > 0, "Corrupted string");
-	return str;
+        TCOD_sys_wait_for_event(TCOD_EVENT_KEY_PRESS, &key, NULL, 1);
+        if (((is_alphanum(key.c) && type == ALPHANUM) || (is_alpha(key.c) && type == ALPHA) || (is_num(key.c) && type == NUMERIC)) && cur_len < max - 1) {
+            str[cur_len++] = key.c;
+            str[cur_len] = 0;
+        }
+        else if ((key.vk == TCODK_BACKSPACE || key.vk == TCODK_DELETE) && cur_len > 0) {
+            str[--cur_len] = 0;
+        }
+        else if (key.c == ' ') {
+            ;   /* Implement something here if needed */
+        }
+        else if (key.vk == TCODK_ESCAPE) {
+            free(str);
+            return NULL;
+        }
+    } while ((key.vk != TCODK_ENTER && key.vk != TCODK_KPENTER) || cur_len == 0);
+    assert_end(strlen(str) > 0, "Corrupted string");
+    return str;
 }

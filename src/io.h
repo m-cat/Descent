@@ -1,22 +1,21 @@
 #ifndef IO_H
 #define IO_H
 
-enum
+typedef enum INPUT_TYPE
 {
-	NUMERIC,
-	ALPHA,
-	ALPHANUM,
-};
+    NUMERIC,
+    ALPHA,
+    ALPHANUM
+} INPUT_TYPE;
 
 /* Define macros */
-#define cprint(y, x, c1, c2, args...) \
-		(TCOD_console_set_default_foreground(NULL, c1), TCOD_console_set_default_background(NULL, c2), TCOD_console_print(NULL, x, y, args))
-#define cprint_center(y, x, c1, c2, args...) \
-		(TCOD_console_set_alignment(NULL, TCOD_CENTER), cprint(y, x, c1, c2, args), TCOD_console_set_alignment(NULL, TCOD_LEFT))
-#define cprint_right(y, x, c1, c2, args...) \
-		(TCOD_console_set_alignment(NULL, TCOD_RIGHT), cprint(y, x, c1, c2, args), TCOD_console_set_alignment(NULL, TCOD_LEFT))
+#define cprint(y, x, c1, c2, ...) \
+        (TCOD_console_set_default_foreground(NULL, c1), TCOD_console_set_default_background(NULL, c2), TCOD_console_print(NULL, (int) (x), (int) (y), __VA_ARGS__))
+#define cprint_center(y, x, c1, c2, ...) \
+        (TCOD_console_set_alignment(NULL, TCOD_CENTER), cprint((int) (y), (int) (x), c1, c2, __VA_ARGS__), TCOD_console_set_alignment(NULL, TCOD_LEFT))
+#define cprint_right(y, x, c1, c2, ...) \
+        (TCOD_console_set_alignment(NULL, TCOD_RIGHT), cprint((int) (y), (int) (x), c1, c2, __VA_ARGS__), TCOD_console_set_alignment(NULL, TCOD_LEFT))
 
-char	*cinput(int y, int x, int max, int type);
+char    *cinput(unsigned int y, unsigned int x, unsigned int max, INPUT_TYPE type);
 
-void	draw_game();
 #endif

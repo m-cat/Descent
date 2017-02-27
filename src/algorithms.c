@@ -23,7 +23,6 @@
 void advance_turn() {
     ACTOR   *a;
     int     pri;
-    /*~~~~~~~~*/
 
     while ((a = priq_pop(actor_queue, &pri))) {
 
@@ -46,7 +45,6 @@ void calc_fov() {
     unsigned int    j;
     ACTOR           *a;
     char            *subject;
-    /*~~~~~~~~~~~~~~~~~~~~~*/
 
     /* Compute FOV */
     TCOD_map_compute_fov(fov_map, (int) player->x, (int) player->y, FOV_RADIUS, 1, FOV_SHADOW);

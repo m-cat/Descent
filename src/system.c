@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <libtcod.h>
 #include "util.h"
 #include "io.h"
@@ -21,7 +22,6 @@ void err_print(const char *msg) {
 /* Prints an error to a file */
 void err_fprint(const char *msg) {
     FILE    *err_file;
-    /*~~~~~~~~~~~~~~*/
 
     err_file = fopen("error_log.txt", "w");
     fprintf(err_file, "ERROR: %s", msg);
@@ -51,7 +51,6 @@ void message_add(char *str, char *punc) {
     char            *first = str;
     char            *add;   /* additional lines */
     unsigned int    cutoff;
-    /*~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
     #define MAX_LEN (UI_WIDTH - 3)
     while (strlen(str) >= MAX_LEN) {

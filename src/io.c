@@ -14,7 +14,6 @@ char *cinput(unsigned int y, unsigned int x, unsigned int max, INPUT_TYPE type) 
     TCOD_key_t      key;
     unsigned int    cur_len = 0;
     char            *str = calloc(max + 1, 1);
-    /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
     do
     {

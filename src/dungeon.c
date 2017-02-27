@@ -22,7 +22,6 @@ void block_copy(DUNGEON_BLOCK *dest, DUNGEON_BLOCK *source) {
 
 DUNGEON_BLOCK *block_create(unsigned int y, unsigned int x, MODEL_BLOCK *model) {
     DUNGEON_BLOCK   *block = NULL;
-    /*~~~~~~~~~~~~~~~~~~~*/
 
     block = malloc(sizeof(DUNGEON_BLOCK));
     assert_end(block != NULL, "Could not allocate block memory.");
@@ -35,13 +34,13 @@ DUNGEON_BLOCK *block_create(unsigned int y, unsigned int x, MODEL_BLOCK *model) 
     block->col_nonvis = model->col_nonvis;
 
     block->resident = NULL;
-    block->stash = NULL;
-    block->furn = NULL;
+    block->stash    = NULL;
+    block->furn     = NULL;
 
-    block->EXPLORED = model->EXPLORED;
-    block->VISIBLE = model->VISIBLE;
+    block->EXPLORED    = model->EXPLORED;
+    block->VISIBLE     = model->VISIBLE;
     block->TRANSPARENT = model->TRANSPARENT;
-    block->PASSABLE = model->PASSABLE;
+    block->PASSABLE    = model->PASSABLE;
 
     DUNGEON[y][x] = *block;
 
@@ -49,16 +48,15 @@ DUNGEON_BLOCK *block_create(unsigned int y, unsigned int x, MODEL_BLOCK *model) 
 }
 
 void CLR_OPTS(unsigned int y, unsigned int x) {
-    DUNGEON[y][x].PASSABLE = 0;
+    DUNGEON[y][x].PASSABLE    = 0;
     DUNGEON[y][x].TRANSPARENT = 0;
-    DUNGEON[y][x].VISIBLE = 0;
-    DUNGEON[y][x].EXPLORED = 0;
+    DUNGEON[y][x].VISIBLE     = 0;
+    DUNGEON[y][x].EXPLORED    = 0;
 }
 
 void CLR_BLOCK(unsigned int y, unsigned int x) {
     ITEM_N          *iterator;
     DUNGEON_BLOCK   *block = &DUNGEON[y][x];
-    /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
     assert_end(block != NULL, "Corrupted dungeon data.");
     CLR_OPTS(y, x);
@@ -91,7 +89,6 @@ void dungeon_clear() {
     unsigned int    j;
     int             pri;
     ACTOR           *a;
-    /*~~~~~~~~~~~~~~~~*/
 
     /* Clear all blocks */
     for (i = 0; i < MAX_HEIGHT; i++) {
@@ -121,8 +118,7 @@ void dungeon_resize(unsigned int resize_y, unsigned int resize_x, unsigned int s
     unsigned int    j;
     unsigned int    prev_height = MAX_HEIGHT;
     unsigned int    prev_width = MAX_WIDTH;
-	DUNGEON_BLOCK   *test_ptr;
-    /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+    DUNGEON_BLOCK   *test_ptr;
 
     if (shift_up) {
         DUNGEON_Y += resize_y;
@@ -135,11 +131,11 @@ void dungeon_resize(unsigned int resize_y, unsigned int resize_x, unsigned int s
     if (resize_y) {
         MAX_HEIGHT += resize_y;
         test_ptr = realloc(DUNGEON, MAX_HEIGHT * sizeof(DUNGEON_BLOCK *));
-		if (test_ptr == NULL) {
-			free(DUNGEON);
-			error_end("Could not allocate memory");
-		}
-        DUNGEON = test_ptr;
+        if (test_ptr == NULL) {
+            free(DUNGEON);
+            error_end("Could not allocate memory");
+        }
+        *DUNGEON = test_ptr;
 
         /* If resize_y < 0, shift over all the rows */
         if (shift_up) {
@@ -219,7 +215,6 @@ void dungeon_set_fov() {
 DIRECTION random_valid_path(unsigned int x, unsigned int y, unsigned int maze_x, unsigned int maze_y, unsigned int width, unsigned int height) {
     DIRECTION       paths[4];
     unsigned int    count = 0;
-    /*~~~~~~~~~~~~~~~~~~~~~~*/
 
     if (y > maze_y + 1 && DUNGEON[y - 2][x].type == TILE_WALL) {
         paths[count++] = DIR_N;
@@ -245,9 +240,8 @@ DIRECTION random_valid_path(unsigned int x, unsigned int y, unsigned int maze_x,
  */
 void dungeon_gen_maze(unsigned int x, unsigned int y, unsigned int maze_x, unsigned int maze_y, unsigned int width, unsigned int height) {
     enum DIRECTION  d;
-    /*~~~~~~~~~~~~~~*/
 
-    assert_end(width % 2 == 1, "Assertion failed: width % 2 == 1");
+    assert_end(width % 2 == 1,  "Assertion failed: width % 2 == 1");
     assert_end(height % 2 == 1, "Assertion failed: height % 2 == 1");
 
     block_create(y, x, &model_floor);
@@ -287,7 +281,6 @@ void dungeon_gen_cave(unsigned int goal) {
     unsigned int    resize_y;
     unsigned int    shift_left;
     unsigned int    shift_up;
-    /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
     CURRENT_HEIGHT = CURRENT_WIDTH = 3;
     DUNGEON_X = x - 1, DUNGEON_Y = y - 1;
@@ -413,7 +406,6 @@ void dungeon_place_items() {
     unsigned int    i = 12;
     unsigned int    x;
     unsigned int    y;
-    /*~~~~~~~~~~~~~~~~~~~*/
 
     while (i-- > 0) {
         do
@@ -432,7 +424,6 @@ void dungeon_place_enemies() {
     unsigned int    i = 50;
     unsigned int    x;
     unsigned int    y;
-    /*~~~~~~~~~~~~~~~~~~~*/
 
     while (i-- > 0) {
         do

@@ -17,7 +17,6 @@ int main() {
     TCOD_key_t      key;
     TCOD_event_t    ev;
     TCOD_mouse_t    mouse;
-    /*~~~~~~~~~~~~~~~~~~~~~~*/
 
     /* Initialize game */
     init_all(); /* Initialize console and colors */

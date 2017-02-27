@@ -9,17 +9,16 @@
 
 ACTOR *actor_create(unsigned int y, unsigned int x, MODEL_ACTOR *model) {
     ACTOR   *a = NULL;
-    /*~~~~~~~*/
 
     a = malloc(sizeof(ACTOR));
     assert_end(a != NULL, "Could not allocate actor memory.");
 
     /* Initialize data from model */
-    a->type = model->type;
-    a->name = model->name;              /* we assume these names won't ever change */
-    a->art = model->art;
-    a->ch = model->ch;
-    a->col = model->col;
+    a->type   = model->type;
+    a->name   = model->name;              /* we assume these names won't ever change */
+    a->art    = model->art;
+    a->ch     = model->ch;
+    a->col    = model->col;
     a->gender = (rand_float(0, 1) < model->gen_ratio) ? GEN_MALE : GEN_FEMALE;
 
     a->level = model->level, a->exp = model->exp;
@@ -31,13 +30,13 @@ ACTOR *actor_create(unsigned int y, unsigned int x, MODEL_ACTOR *model) {
     a->spd = model->spd;
 
     a->inventory = NULL;
-    a->weapon = NULL;
-    a->armor = NULL;
+    a->weapon    = NULL;
+    a->armor     = NULL;
 
-    a->CAN_MOVE = model->CAN_MOVE;
-    a->CAN_WALK = model->CAN_WALK;
-    a->CAN_SWIM = model->CAN_SWIM;
-    a->CAN_FLY = model->CAN_FLY;
+    a->CAN_MOVE   = model->CAN_MOVE;
+    a->CAN_WALK   = model->CAN_WALK;
+    a->CAN_SWIM   = model->CAN_SWIM;
+    a->CAN_FLY    = model->CAN_FLY;
     a->CAN_BURROW = model->CAN_BURROW;
 
     /* Initialize other data */
@@ -61,7 +60,6 @@ ACTOR *actor_create(unsigned int y, unsigned int x, MODEL_ACTOR *model) {
 
 void actor_delete(ACTOR *a) {
     ITEM_N  *iterator;
-    /*~~~~~~~~~~~~~~*/
 
     /* Delete inventory */
     while (TCOD_list_size(*(a->inventory)) > 0) {
@@ -98,7 +96,6 @@ void actor_attempt_move(ACTOR *a, unsigned int y, unsigned int x) {
 void actor_add_item(ACTOR *a, ITEM *item) {
     ITEM_N  **iterator;
     ITEM_N  *item_n = NULL;
-    /*~~~~~~~~~~~~~~~*/
 
     for (iterator = (ITEM_N **) TCOD_list_begin(*(a->inventory)); iterator != (ITEM_N **) TCOD_list_end(*(a->inventory)); iterator++) {
 
@@ -149,7 +146,6 @@ ITEM *actor_get_item_i(ACTOR *a, int i) {
 /* Picks up the i'th item in the stash */
 void actor_pickup(ACTOR *a, int i) {
     ITEM    *item = item_pickup(a->y, a->x, i);
-    /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
     /* Add message if visible */
     if (CHK_VISIBLE(a->y, a->x)) {
@@ -162,7 +158,6 @@ void actor_pickup(ACTOR *a, int i) {
 /* Drops the i'th item in the actor's inventory */
 void actor_drop(ACTOR *a, int i) {
     ITEM    *item = actor_get_item_i(a, i);
-    /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
     /* Add message if visible */
     if (CHK_VISIBLE(a->y, a->x)) {
@@ -175,7 +170,6 @@ void actor_drop(ACTOR *a, int i) {
 /* Wields the i'th item in the actor's inventory */
 void actor_wield(ACTOR *a, int i) {
     ITEM    *item;
-    /*~~~~~~~~~~*/
 
     item = actor_get_item_i(a, i);
     if (a->weapon != NULL) {
@@ -190,8 +184,9 @@ void actor_wield(ACTOR *a, int i) {
     }
 }
 
-/* a attacks b ;
- * TODO: Implement combat calculatio
+/*
+ * a attacks b ;
+ * TODO: Implement combat calculation
  */
 void actor_attack(ACTOR *a, ACTOR *b) {
     message_add(sentence_form(a->art, 1, a->name, "attacks", "attack", b->art, 1, b->name), "!");

@@ -17,5 +17,11 @@
 *.out
 *.app
 
+# gtags files
+GPATH
+GRTAGS
+GTAGS
+GSYMS
+
 # Junk files
 *~

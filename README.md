@@ -6,9 +6,9 @@
 
 Descent is a work-in-progress [roguelike](http://en.wikipedia.org/wiki/Roguelike) game. It will differ from most convential roguelikes by foregoing archaic and dated gameplay and instead offering an intuitive and user-friendly experience.
 
-##Current State (3-21-2014)
+##Current State (2-27-2017)
 
-Been too busy to work on major features. However, a lot of the code has been simplified or improved, some bugs have been fixed, and some minor things have been implemented.
+This project is likely discontinued. I intend to start a new game from scratch, using a different language, more organized code, and less initial features/scope.
 
 ###To Do
 

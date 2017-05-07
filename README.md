@@ -1,18 +1,18 @@
-#Descent
+# Descent
 
 ![alt text](http://i.imgur.com/i5so9L3.png)
 
-##What is Descent?
+## What is Descent?
 
 Descent is a work-in-progress [roguelike](http://en.wikipedia.org/wiki/Roguelike) game. It will differ from most convential roguelikes by foregoing archaic and dated gameplay and instead offering an intuitive and user-friendly experience.
 
-##Current State (2-27-2017)
+## Current State (2-27-2017)
 
-This project is likely discontinued. I intend to start a new game from scratch, using a different language, more organized code, and less initial features/scope.
+This project is likely discontinued. I intend to start a new game from scratch, using a different language, more organized code, and fewer initial features/scope.
 
-###To Do
+### To Do
 
-####General
+#### General
 
 - Equipment screen
 
@@ -26,11 +26,11 @@ This project is likely discontinued. I intend to start a new game from scratch, 
 
 - Continue work on the menu and UI
 
-####Misc
+#### Misc
 
 - Implement picking up specific items from the ground.
 
-##Credits
+## Credits
 
 All code in "src" folder by Marcin Swieczkowki, except where noted.
 

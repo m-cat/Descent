@@ -20,14 +20,16 @@ void block_copy(DUNGEON_BLOCK *dest, DUNGEON_BLOCK *source) {
     dest->art = str_copy(source->art);
 }
 
-DUNGEON_BLOCK *block_create(unsigned int y, unsigned int x, MODEL_BLOCK *model) {
+DUNGEON_BLOCK *block_create(unsigned int y, unsigned int x,
+                            MODEL_BLOCK *model) {
     DUNGEON_BLOCK   *block = NULL;
 
     block = malloc(sizeof(DUNGEON_BLOCK));
     assert_end(block != NULL, "Could not allocate block memory.");
 
     block->type = model->type;
-    block->name = model->name;                  /* usually don't need to duplicate the name strings */
+    /* usually don't need to duplicate the name strings */
+    block->name = model->name;
     block->art = model->art;
     block->ch = model->ch;
     block->col_vis = model->col_vis;
@@ -110,10 +112,11 @@ void dungeon_clear() {
 }
 
 /* Resizes a dungeon by amount resize_x, resize_y. If shift_left or shift_up are
- * true, the dungeon will be resized in the negative direction. That is, elements
- * will be shifted over to simulate a negatively-expanded grid.
+ * true, the dungeon will be resized in the negative direction. That is, all
+ * elements will be shifted over to simulate a negatively-expanded grid.
  */
-void dungeon_resize(unsigned int resize_y, unsigned int resize_x, unsigned int shift_up, unsigned int shift_left) {
+void dungeon_resize(unsigned int resize_y, unsigned int resize_x,
+                    unsigned int shift_up, unsigned int shift_left) {
     unsigned int    i;
     unsigned int    j;
     unsigned int    prev_height = MAX_HEIGHT;

@@ -61,7 +61,8 @@ char *string_create(unsigned int argc, ...) {
     buf = malloc(len + 1);
     va_start(args, argc);
     for (j = 0; j < argc; j++) {
-        (j == 0) ? strcpy(buf, va_arg(args, char *)) : strcat(buf, va_arg(args, char *));
+        (j == 0) ? strcpy(buf, va_arg(args, char *))
+          : strcat(buf, va_arg(args, char *));
     }
 
     va_end(args);
@@ -102,11 +103,12 @@ char *subject_form(char *article, unsigned int num, char *subject) {
     return ret;
 }
 
-char *sentence_form(char *article1, unsigned int num1, char *subject, char *verb_sing, char *verb_plur, char *article2, unsigned int num2, char *object) {
+char *sentence_form(char *article1, unsigned int num1, char *subject,
+                    char *verb_sing, char *verb_plur, char *article2,
+                    unsigned int num2, char *object) {
     char    *art1;
     char    *art2;
     char    *ret;
-    /*~~~~~~~~~~*/
 
     art1 = subject_form(article1, num1, subject);
     art2 = subject_form(article2, num2, object);
@@ -126,8 +128,7 @@ char *sentence_form(char *article1, unsigned int num1, char *subject, char *verb
 
 /* Got this from stack overflow */
 char *str_copy(const char *s) {
-    char    *d = malloc(strlen(s) + 1); /* Space for length plus nul */
-    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    char *d = malloc(strlen(s) + 1); /* Space for length plus nul */
 
     if (d == NULL) {
         return NULL;                    /* No memory */
@@ -157,7 +158,6 @@ unsigned int inttostr(char *buffer, unsigned long i, unsigned int base) {
     char    *hex_chars = "0123456789abcdef";
     char    result[16];
     char    result2[16] = "";
-    /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
     if (i == 0) {
         strcpy(buffer, "0");
@@ -179,7 +179,6 @@ unsigned int inttostr(char *buffer, unsigned long i, unsigned int base) {
 /* Length of a non-negative integer */
 unsigned int intlen(unsigned int a) {
     unsigned int    i = 1;
-    /*~~~~~~~~~~~~~~~~~~*/
 
     a /= 10;
     while (a) {
@@ -189,12 +188,11 @@ unsigned int intlen(unsigned int a) {
     return i;
 }
 
-/* Builds up a name from pre-defined sequences of letters. Highly configurable in
- * terms of which sequences are possible. Remember to FREE the string after you're
- * done with it.
+/* Builds up a name from pre-defined sequences of letters. Highly
+   configurable in terms of which sequences are possible. Remember to
+   FREE the string after you're done with it.
  */
 char *name_gen() {
-
     /* Define the list of consonant, double consonant, etc. sequences */
     const char      *consonants = "bdfghklmnprsstv";
     const char      *start_dconsonants = "brchcltrthdrslwhphblcrfrwrgrstqu";
@@ -214,7 +212,6 @@ char *name_gen() {
     unsigned int    vow_i = strlen(vowels);
     unsigned int    dvow_i = strlen(dvowels) / 2;
     unsigned int    vowel = (rand_float(0, 1) < .33) ? 1 : 0;
-    /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
     /* Choose initial sequence of letters */
     if (vowel) {
@@ -253,8 +250,6 @@ char *name_gen() {
     /* Alternate between choosing vowel and consonant sequences */
     m = rand_unsigned_int(2, 5);
     while (m-- > 0 && strlen(word) < MAX_NAME_LEN - 3) {
-
-        /* using the "goes to" operator --> */
         if ((vowel = !vowel)) {
             c = rand_unsigned_int(0, vow_i + dvow_i - 1);
             if (c < vow_i) {
@@ -296,7 +291,8 @@ char *name_gen() {
 /* Moves the coordinates (y, x) in direction DIR by amount amt, and stores the
  * new coordinates in (new_y, new_x)
  */
-void MOVE_DIR(unsigned int y, unsigned int x, unsigned int *new_y, unsigned int *new_x, DIRECTION dir, unsigned int amt) {
+void MOVE_DIR(unsigned int y, unsigned int x, unsigned int *new_y,
+              unsigned int *new_x, DIRECTION dir, unsigned int amt) {
     switch (dir) {
         case DIR_N:
             *new_y = y - amt;

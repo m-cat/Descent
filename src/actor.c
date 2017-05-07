@@ -15,7 +15,7 @@ ACTOR *actor_create(unsigned int y, unsigned int x, MODEL_ACTOR *model) {
 
     /* Initialize data from model */
     a->type   = model->type;
-    a->name   = model->name;              /* we assume these names won't ever change */
+    a->name   = model->name;       /* we assume these names won't ever change */
     a->art    = model->art;
     a->ch     = model->ch;
     a->col    = model->col;
@@ -84,7 +84,6 @@ int actor_can_move(ACTOR *a, unsigned int y, unsigned int x) {
 }
 
 void actor_attempt_move(ACTOR *a, unsigned int y, unsigned int x) {
-
     /* TODO: add failed movement attempts, i.e. bumping into walls */
     DUNGEON[a->y][a->x].resident = NULL;
     a->y = y;
@@ -97,7 +96,9 @@ void actor_add_item(ACTOR *a, ITEM *item) {
     ITEM_N  **iterator;
     ITEM_N  *item_n = NULL;
 
-    for (iterator = (ITEM_N **) TCOD_list_begin(*(a->inventory)); iterator != (ITEM_N **) TCOD_list_end(*(a->inventory)); iterator++) {
+    for (iterator = (ITEM_N **) TCOD_list_begin(*(a->inventory));
+         iterator != (ITEM_N **) TCOD_list_end(*(a->inventory));
+         iterator++) {
 
         /* Item already found in inventory, increment count */
         if (strcmp((*iterator)->item->name, item->name) == 0) {
@@ -119,7 +120,6 @@ void actor_add_item(ACTOR *a, ITEM *item) {
 ITEM *actor_get_item_i(ACTOR *a, int i) {
     ITEM_N  *item_n;
     ITEM    *item = NULL;
-    /*~~~~~~~~~~~~*/
 
     if (i == -1) {
         item_n = TCOD_list_peek(*(a->inventory));
@@ -137,7 +137,7 @@ ITEM *actor_get_item_i(ACTOR *a, int i) {
         item = malloc(sizeof(ITEM));
         assert_end(item != NULL, "Could not allocate item memory.");
         item_copy(item, item_n->item);
-        item_n->n--;
+        item_n->n --;
     }
 
     return item;
@@ -149,7 +149,8 @@ void actor_pickup(ACTOR *a, int i) {
 
     /* Add message if visible */
     if (CHK_VISIBLE(a->y, a->x)) {
-        message_add(sentence_form(a->art, 1, a->name, "picks up", "pick up", item->art, 1, item->name), ".");
+        message_add(sentence_form(a->art, 1, a->name, "picks up", "pick up",
+                                  item->art, 1, item->name), ".");
     }
 
     actor_add_item(a, item);

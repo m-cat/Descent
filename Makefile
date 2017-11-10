@@ -1,45 +1,57 @@
-# C makefile for a generic moderate-sized program
+# Makefile for a generic medium-sized C program.
 # Author: Marcin Swieczkowski
 # Notes:
 #  * All warnings enabled and all warnings are treated as errors.
-#  * Errors are sent to the file errors
+#  * Errors are sent to the file "errors".
+
+# Configure these options:
+
+NAME    = descent
+O       = -O1
+
+# Leave these alone:
 
 DEPS_C  = src/*.c
-DEPS_H  = src/defs.h
-DEPS    = $(DEPS_C) $(DEPS_H)
-DIR     = src
-WARNALL = -Wall -Wextra -Wcast-align -Wcast-qual -Wdisabled-optimization -Wformat=2 -Winit-self -Wlogical-op -Wmissing-declarations -Wmissing-include-dirs -Wredundant-decls -Wshadow -Wsign-conversion -Wstrict-overflow=5 -Wswitch-default -Wundef -Wno-unused
-WARN    = -Wall -Werror
-OUTPUT  = descent
-ERRORS  = errors
-LIBS    = -Llib -Iinclude -ltcod-mingw
-O       = -O1
-DEBUG   = -m32 -g -fno-inline -fno-omit-frame-pointer
+DEPS_H  = src/*.h
+SRC  = $(DEPS_C) $(DEPS_H)
+
 BACKUP  = backup
+DIR     = src
+ERRORS  = errors
+LINTS   = lints
+OUTPUT  = $(NAME)
 
-package : build
+DEBUG   = -m32 -g -fno-inline -fno-omit-frame-pointer
+CF_OPTS = -style="{BasedOnStyle: llvm, IndentWidth: 4}"
+LIBS    = -Llib -Iinclude -ltcod-mingw
+OC_OPTS = -enable-clang-static-analyzer -no-analytics -o $(LINTS)
+WARN    = -Wall -Werror
+WARNALL = -Wall -Wextra
 
-build : compile clean
+GARBAGE = *~ *.stackdump src/*.tmp src/*~ src/*\#
+
+package: format build
+
+build: compile clean
 	./$(OUTPUT)
 
-compile : $(DEPS)
-	gcc $(DEPS) $(LIBS) $(WARN) $(O) -o $(OUTPUT) 2>&1 | tee $(ERRORS)
+compile: $(SRC)
+	gcc $(DEPS_C) $(LIBS) $(WARN) $(O) -o $(OUTPUT) 2>&1 | tee $(ERRORS)
 #	gtags
 
-analyze : $(DEPS)
-	/cppcheck/cppcheck $(DIR) --enable=warning,performance,information --inconclusive
-	gcc $(DEPS) $(LIBS) $(WARNALL) $(O) $(DEBUG) -o $(OUTPUT)-debug 2>&1 | tee $(ERRORS)
+analyze:
+	oclint $(OC_OPTS) $(SRC) -- $(LIBS) -c; rm *.plist
 
-# beautify : $(DEPS)
-#	gc -dir-$(DIR)
+format: backup
+	clang-format $(CF_OPTS) -i $(SRC)
 
-backup : $(DEPS)
-	mkdir $(BACKUP) -p
-	cp -r $? $(BACKUP)
+backup:
+	mkdir -p $(BACKUP)
+	cp -r -f $(SRC) $(BACKUP)
 
-clean :
-	rm -f -r *~ *.stackdump src/*.tmp src/*~ src/*\#
+clean:
+	rm -f -r $(GARBAGE)
 
-debug : $(DEPS)
-	gcc $(DEPS) $(LIBS) $(O) $(DEBUG) -o $(OUTPUT)-debug
+debug: $(SRC)
+	gcc $(SRC) $(LIBS) $(O) $(DEBUG) -o $(OUTPUT)-debug
 	gdb $(OUTPUT)-debug

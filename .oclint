@@ -1,0 +1,3 @@
+rule-configurations:
+  - key: SHORT_VARIABLE_NAME
+    value: 1

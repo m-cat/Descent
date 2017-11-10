@@ -25,3 +25,9 @@ GSYMS
 
 # Junk files
 *~
+
+# Misc
+errors
+lints
+backup
+*.plist

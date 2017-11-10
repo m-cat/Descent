@@ -3,14 +3,13 @@
  * Documentation License. In the Descent project, this implementation is used to
  * make monsters move in INCREASING order of speed
  */
+#include "priority.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include "priority.h"
 
 /* first element in array not used to simplify indices */
 pri_queue priq_new(int size) {
-    pri_queue   q = malloc(sizeof(pri_queue_t));
-    /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+    pri_queue q = malloc(sizeof(pri_queue_t));
 
     if (size < 4) {
         size = 4;
@@ -24,16 +23,14 @@ pri_queue priq_new(int size) {
 }
 
 void priq_push(pri_queue q, void *data, int pri) {
-    q_elem_t    *b;
-    int         n;
-    int         m;
-    /*~~~~~~~~~~~*/
+    q_elem_t *b;
+    int n;
+    int m;
 
     if (q->n >= q->alloc) {
         q->alloc *= 2;
         b = q->buf = realloc(q->buf, sizeof(q_elem_t) * (size_t)q->alloc);
-    }
-    else {
+    } else {
         b = q->buf;
     }
 
@@ -51,11 +48,10 @@ void priq_push(pri_queue q, void *data, int pri) {
 
 /* remove top item. returns 0 if empty. *pri can be null. */
 void *priq_pop(pri_queue q, int *pri) {
-    void        *out;
-    q_elem_t    *b = q->buf;
-    int         n = 1;
-    int         m;
-    /*~~~~~~~~~~~~~~~~~~~~*/
+    void *out;
+    q_elem_t *b = q->buf;
+    int n = 1;
+    int m;
 
     if (q->n == 1) {
         return 0;
@@ -105,9 +101,8 @@ void *priq_top(pri_queue q, int *pri) {
 
 /* this is O(n log n), but probably not the best */
 void priq_combine(pri_queue q, pri_queue q2) {
-    int         i;
-    q_elem_t    *e = q2->buf + 1;
-    /*~~~~~~~~~~~~~~~~~~~~~~~~~*/
+    int i;
+    q_elem_t *e = q2->buf + 1;
 
     for (i = q2->n - 1; i >= 1; i--, e++) {
         priq_push(q, e->data, e->pri);

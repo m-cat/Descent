@@ -109,6 +109,7 @@ void actor_add_item(ACTOR *a, ITEM *item) {
     /* No stack of the same item exists, create new stack */
     item_n = malloc(sizeof(ITEM_N));
     assert_end(item_n != NULL, "Could not allocate item stack memory.");
+
     item_n->item = item;
     item_n->n = 1;
     TCOD_list_push(*(a->inventory), (const void *)item_n);

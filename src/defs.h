@@ -4,10 +4,15 @@
 #include "priority.h"
 #include <libtcod.h>
 
+/* Define a spiffy uint type */
 typedef unsigned int uint;
 
 /* Define global constants */
 extern const char *GAME_NAME;
+
+/* Game constants */
+
+#define FONT_FILE "terminal.png"
 
 #define FPS 60
 #define TURN_DELAY 20 /* milliseconds */
@@ -19,6 +24,8 @@ extern const char *GAME_NAME;
 #define MESSAGE_LIST_LEN 128
 
 #define FOV_RADIUS 16
+
+/* UI constants */
 
 #define OFFSET_NOT_X 1 /* x-offset for notification message */
 #define OFFSET_NOT_Y 0

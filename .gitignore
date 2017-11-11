@@ -13,6 +13,7 @@
 *.dylib
 
 # Executables
+descent
 *.exe
 *.out
 *.app
@@ -27,6 +28,7 @@ GSYMS
 *~
 
 # Misc
+build
 errors
 lints
 backup

@@ -213,9 +213,8 @@ void dungeon_set_fov() {
     }
 }
 
-DIRECTION
-random_valid_path(uint x, uint y, uint maze_x, uint maze_y, uint width,
-                  uint height) {
+DIRECTION random_valid_path(uint x, uint y, uint maze_x, uint maze_y,
+                            uint width, uint height) {
     DIRECTION paths[4];
     uint count = 0;
 

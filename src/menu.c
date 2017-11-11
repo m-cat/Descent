@@ -73,6 +73,7 @@ int draw_menu(enum MENU_SCREEN menu) {
 
     default:
         error_end("Trying to draw nonexistent menu.");
+        break;
     }
 
     return 0;
@@ -107,7 +108,6 @@ main_menu:
 
         case TCODK_ESCAPE:
             return 1;
-            break;
 
         default:
             break;

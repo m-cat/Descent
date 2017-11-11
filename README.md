@@ -1,10 +1,40 @@
 # Descent
 
-![alt text](http://i.imgur.com/i5so9L3.png)
+[![LoC](https://tokei.rs/b1/github/m-cat/descent)](https://github.com/m-cat/descent)
+
+![Descent](http://i.imgur.com/i5so9L3.png)
 
 ## What is Descent?
 
 Descent is a work-in-progress [roguelike](http://en.wikipedia.org/wiki/Roguelike) game. It will differ from most convential roguelikes by foregoing archaic and dated gameplay and instead offering an intuitive and user-friendly experience.
+
+## Building
+
+Building Descent consists of simply installing libtcod (version 1.6.3 was used for this project) and running `make`.
+
+### Mac
+
+Download libtcod using Homebrew:
+
+```
+brew install libtcod
+```
+
+Build and run the project:
+
+```
+make
+```
+
+### Linux/Windows
+
+To get libtcod, follow the instructions [here](https://bitbucket.org/libtcod/libtcod).
+
+Build and run the project:
+
+```
+make
+```
 
 ## Current State (2-27-2017)
 

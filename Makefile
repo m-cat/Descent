@@ -21,14 +21,14 @@ ERRORS  = errors
 LINTS   = lints
 OUTPUT  = $(NAME)
 
-DEBUG   = -m32 -g -fno-inline -fno-omit-frame-pointer
 CF_OPTS = -style="{BasedOnStyle: llvm, IndentWidth: 4}"
-LIBS    = -Llib -Iinclude -ltcod-mingw
+DEBUG   = -m32 -g -fno-inline -fno-omit-frame-pointer
+LIBS    = -Iinclude -ltcod
 OC_OPTS = -enable-clang-static-analyzer -no-analytics -o $(LINTS)
 WARN    = -Wall -Werror
 WARNALL = -Wall -Wextra
 
-GARBAGE = *~ *.stackdump src/*.tmp src/*~ src/*\#
+GARBAGE = **/*~ **/*.stackdump **/*.tmp **/*~ **/*\#
 
 package: format build
 
@@ -45,7 +45,7 @@ analyze:
 format: backup
 	clang-format $(CF_OPTS) -i $(SRC)
 
-backup:
+backup: $(SRC)
 	mkdir -p $(BACKUP)
 	cp -r -f $(SRC) $(BACKUP)
 

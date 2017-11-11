@@ -15,8 +15,7 @@ int init_all() {
     uint i;
 
     /* Font must be set before initializing root console */
-    TCOD_console_set_custom_font("courier12x12_aa_tc.png",
-                                 TCOD_FONT_LAYOUT_TCOD, 0, 0);
+    // TCOD_console_set_custom_font(FONT_FILE, TCOD_FONT_LAYOUT_TCOD, 0, 0);
 
     /* Initialize TCOD console */
     TCOD_console_init_root(CON_WIDTH, CON_HEIGHT, GAME_NAME, 0,
@@ -42,7 +41,6 @@ int init_all() {
     /* Initialize misc */
     TCOD_sys_set_fps(FPS);
     TCOD_console_set_background_flag(NULL, TCOD_BKGND_SET);
-    TCOD_console_set_keyboard_repeat(0, 0);
 
     return 0;
 }

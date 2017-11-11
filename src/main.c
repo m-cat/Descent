@@ -22,7 +22,6 @@ int main() {
     init_all(); /* Initialize console and colors */
 
 start:
-
     /* Main menu */
     if (handle_menu() == 1) {
         exit(1);

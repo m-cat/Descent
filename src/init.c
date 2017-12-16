@@ -3,9 +3,9 @@
 #include "dungeon.h"
 #include "models.h"
 #include "player.h"
-#include "priority.h"
 #include "system.h"
 #include "util.h"
+#include "util/priority.h"
 #include <libtcod.h>
 #include <stdlib.h>
 #include <string.h>

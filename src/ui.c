@@ -13,7 +13,7 @@
 void draw_notify() {
     DUNGEON_BLOCK *block;
     ACTOR *a;
-    FURN *furn;
+    OBJECT *object;
     TCOD_list_t *stash;
     ITEM_N *item_n = NULL;
     uint j;
@@ -60,8 +60,8 @@ void draw_notify() {
         }
 
         block = &DUNGEON[LOOK_Y][LOOK_X];
-        a = block->resident;
-        furn = block->furn;
+        a = block->actor;
+        object = block->object;
         if (block->stash != NULL) {
             item_n = TCOD_list_peek(*(block->stash));
         }
@@ -70,8 +70,8 @@ void draw_notify() {
 
         if (visible && a != NULL) {
             subject = subject_form(a->art, 1, a->name);
-        } else if (furn != NULL) {
-            subject = subject_form(furn->art, 1, furn->name);
+        } else if (object != NULL) {
+            subject = subject_form(object->art, 1, object->name);
         } else if (visible && item_n != NULL) {
             subject =
                 subject_form(item_n->item->art, item_n->n, item_n->item->name);
@@ -79,7 +79,7 @@ void draw_notify() {
             subject = subject_form(block->art, 1, block->name);
         }
 
-        /* Tile not visible, display only furn or block */
+        /* Tile not visible, display only object or block */
         if (!visible) {
             cprint(OFFSET_NOT_Y, OFFSET_NOT_X, TCOD_white, TCOD_black,
                    "You remember seeing %s.", subject);
@@ -97,13 +97,11 @@ void draw_notify() {
 }
 
 void draw_view() {
-    uint i;
-    uint j;
-    uint drawi;
-    uint drawj;
+    int i, j;
+    uint drawi, drawj;
     DUNGEON_BLOCK *block;
     ACTOR *a;
-    FURN *furn;
+    OBJECT *object;
     ITEM *item;
     enum TILE_TYPE type;
     TCOD_color_t c2; /* background color */
@@ -144,11 +142,11 @@ void draw_view() {
                 continue;
             }
 
-            /* Draw the contents of the block Prioritizes actor > furn > item >
-             * tile
+            /* Draw the contents of the block.
+             * Prioritizes actor > object > item > tile
              */
-            a = block->resident;
-            furn = block->furn;
+            a = block->actor;
+            object = block->object;
             type = block->type;
             item = item_get_top(i, j);
             switch (type) {
@@ -167,8 +165,8 @@ void draw_view() {
 
             if (a != NULL) {
                 cprint(drawi, drawj, a->col, c2, "%c", a->ch);
-            } else if (furn != NULL) {
-                cprint(drawi, drawj, furn->col, c2, "%c", furn->ch);
+            } else if (object != NULL) {
+                cprint(drawi, drawj, object->col, c2, "%c", object->ch);
             } else if (item != NULL) {
                 cprint(drawi, drawj, item->col, c2, "%c", item->ch);
             } else {
@@ -218,6 +216,7 @@ void draw_inventory() {
          iterator++, i++) {
         subject = subject_form((*iterator)->item->art, (*iterator)->n,
                                (*iterator)->item->name);
+
         if (i == INV_POS) {
             cprint(UI_Y + 6 + i, UI_X + 2, TCOD_white, TCOD_azure, "%c - %s",
                    'a' + i, subject);

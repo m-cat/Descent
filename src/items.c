@@ -22,10 +22,13 @@ ITEM *item_create(MODEL_ITEM *model) {
     assert_end(item != NULL, "Could not allocate item memory.");
 
     item->type = model->type;
-    item->name =
-        model->name; /* may need to create duplicates of these strings in the
-                        future */
+
+    /* May need to create duplicates of these strings in the future */
+    // TODO: Rework these. Have `name` be a pointer to a (name, art) string
+    // tuple in some list
+    item->name = model->name;
     item->art = model->art;
+
     item->ch = model->ch;
     item->col = model->col;
 
@@ -64,7 +67,7 @@ ITEM *item_pickup(uint y, uint x, int i) {
         item_n->n--;
     } else {
         TCOD_list_remove(*(DUNGEON[y][x].stash), (const void *)item_n);
-        item_delete(item_n->item);
+        item_free(item_n->item);
         free(item_n);
     }
 
@@ -78,14 +81,14 @@ void item_drop(uint y, uint x, ITEM *item) {
 
     if (stash == NULL) {
         stash = malloc(sizeof(TCOD_list_t));
-        *stash = TCOD_list_allocate(1);
+        *stash = TCOD_list_new();
     } else {
         /* Search for preexisting stack of the same item */
         for (iterator = (ITEM_N **)TCOD_list_begin(*stash);
              iterator != (ITEM_N **)TCOD_list_end(*stash); iterator++) {
             if (strcmp((*iterator)->item->name, item->name) == 0) {
                 (*iterator)->n++;
-                item_delete(item);
+                item_free(item);
                 return;
             }
         }
@@ -107,10 +110,13 @@ void item_place(uint y, uint x, MODEL_ITEM *model) {
     item_drop(y, x, item);
 }
 
-void item_delete(ITEM *item) {
+void item_free(ITEM *item) {
+    // TODO: Free name and art when they are loaded from file.
+
     assert_end(item != NULL, "Corrupted item data.");
     assert_end(item->name != NULL, "Corrupted item data.");
-    free(item->name);
-    free(item->art);
+
+    // free(item->name);
+    // free(item->art);
     free(item);
 }

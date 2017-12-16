@@ -30,6 +30,7 @@ GSYMS
 # Misc
 build
 errors
+error_log.txt
 lints
 backup
 *.plist

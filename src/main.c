@@ -29,6 +29,7 @@ start:
 
     /* Generate dungeon */
     dungeon_gen(DUNGEON_CAVE);
+    dungeon_dump();
 
     calc_fov();
     draw_game();
@@ -42,7 +43,7 @@ start:
         }
 
         next_turn = handle_input(ev, key.vk, key.c, key.lctrl || key.rctrl,
-                                 (uint)mouse.cx, (uint)mouse.cy);
+                                 mouse.cx, mouse.cy);
         if (next_turn == 1) {
             /* if player used up a turn */
             TURN_COUNT++;
@@ -57,6 +58,4 @@ start:
         /* Escape was pressed, return to menu */
         goto start;
     }
-
-    exit(1);
 }

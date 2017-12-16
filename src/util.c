@@ -267,55 +267,60 @@ char *name_gen() {
 /* Moves the coordinates (y, x) in direction DIR by amount amt, and stores the
  * new coordinates in (new_y, new_x)
  */
-void MOVE_DIR(uint y, uint x, uint *new_y, uint *new_x, DIRECTION dir,
-              uint amt) {
+void move_dir(int y, int x, int *new_y, int *new_x, DIRECTION dir, uint amt) {
+    int temp_x, temp_y;
+
     switch (dir) {
     case DIR_N:
-        *new_y = y - amt;
-        *new_x = x;
+        temp_y = y - amt;
+        temp_x = x;
         break;
 
     case DIR_E:
-        *new_y = y;
-        *new_x = x + amt;
+        temp_y = y;
+        temp_x = x + amt;
         break;
 
     case DIR_S:
-        *new_y = y + amt;
-        *new_x = x;
+        temp_y = y + amt;
+        temp_x = x;
         break;
 
     case DIR_W:
-        *new_y = y;
-        *new_x = x - amt;
+        temp_y = y;
+        temp_x = x - amt;
         break;
 
     case DIR_NE:
-        *new_y = y - amt;
-        *new_x = x + amt;
+        temp_y = y - amt;
+        temp_x = x + amt;
         break;
 
     case DIR_SE:
-        *new_y = y + amt;
-        *new_x = x + amt;
+        temp_y = y + amt;
+        temp_x = x + amt;
         break;
 
     case DIR_SW:
-        *new_y = y + amt;
-        *new_x = x - amt;
+        temp_y = y + amt;
+        temp_x = x - amt;
         break;
 
     case DIR_NW:
-        *new_y = y - amt;
-        *new_x = x - amt;
+        temp_y = y - amt;
+        temp_x = x - amt;
         break;
 
     default:
-        *new_y = y;
-        *new_x = x;
+        temp_y = y;
+        temp_x = x;
         break;
     }
+
+    if (new_y != NULL)
+        *new_y = temp_y;
+    if (new_x != NULL)
+        *new_x = temp_x;
 }
 
-DIRECTION
-random_dir() { return rand_unsigned_int(DIR_NONE, DIR_END - 1); }
+DIRECTION random_dir() { return rand_unsigned_int(DIR_NONE, DIR_END - 1); }

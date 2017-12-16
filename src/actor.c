@@ -50,7 +50,7 @@ ACTOR *actor_create(uint y, uint x, MODEL_ACTOR *model) {
     /* TODO: add possible items to actor's inventory */
 
     /* Place actor in dungeon and in turn queue */
-    DUNGEON[y][x].resident = a;
+    DUNGEON[y][x].actor = a;
     if (a->CAN_MOVE) {
         priq_push(actor_queue, a, (int)a->spd);
     }
@@ -58,14 +58,14 @@ ACTOR *actor_create(uint y, uint x, MODEL_ACTOR *model) {
     return a;
 }
 
-void actor_delete(ACTOR *a) {
+void actor_free(ACTOR *a) {
     ITEM_N *iterator;
 
     /* Delete inventory */
     while (TCOD_list_size(*(a->inventory)) > 0) {
         iterator = TCOD_list_pop(*(a->inventory));
-        item_delete(iterator->item); /* free the item */
-        free(iterator);              /* free the item_n */
+        item_free(iterator->item); /* free the item */
+        free(iterator);            /* free the item_n */
     }
 
     TCOD_list_delete(*(a->inventory));
@@ -80,15 +80,15 @@ int actor_can_move(ACTOR *a, uint y, uint x) {
         return 1;
     }
 
-    return CHK_PASSABLE(y, x) && DUNGEON[y][x].resident == NULL;
+    return CHK_PASSABLE(y, x) && DUNGEON[y][x].actor == NULL;
 }
 
-void actor_attempt_move(ACTOR *a, uint y, uint x) {
+void actor_try_move(ACTOR *a, uint y, uint x) {
     /* TODO: add failed movement attempts, i.e. bumping into walls */
-    DUNGEON[a->y][a->x].resident = NULL;
+    DUNGEON[a->y][a->x].actor = NULL;
     a->y = y;
     a->x = x;
-    DUNGEON[a->y][a->x].resident = a;
+    DUNGEON[a->y][a->x].actor = a;
 }
 
 /* Adds item to the actor's inventory */
@@ -101,7 +101,7 @@ void actor_add_item(ACTOR *a, ITEM *item) {
         /* Item already found in inventory, increment count */
         if (strcmp((*iterator)->item->name, item->name) == 0) {
             (*iterator)->n++;
-            item_delete(item);
+            item_free(item);
             return;
         }
     }
@@ -202,6 +202,6 @@ void actor_act(ACTOR *a) {
      * int dy;
      * do { dir = random_dir;
      * } while (!actor_can_move(a, dy, dx));
-     * actor_attempt_move(a, dy, dx);
+     * actor_try_move(a, dy, dx);
      */
 }

@@ -7,9 +7,10 @@
 void block_copy(DUNGEON_BLOCK *dest, DUNGEON_BLOCK *source);
 DUNGEON_BLOCK *block_create(uint y, uint x, MODEL_BLOCK *model);
 
-void CLR_OPTS(uint y, uint x);
-void CLR_BLOCK(uint y, uint x);
+void clear_opts(uint y, uint x);
+void clear_block(uint y, uint x);
 
+void dungeon_dump();
 void dungeon_clear();
 void dungeon_resize(uint resize_y, uint resize_x, uint shift_up,
                     uint shift_left);

@@ -10,6 +10,12 @@
 
 ACTOR *player = NULL;
 
+bool chk_in_view(int y, int x) {
+    return y >= CAMERA_Y - VIEW_HEIGHT / 2 + 1 &&
+           y < CAMERA_Y + VIEW_HEIGHT / 2 && x >= CAMERA_X - VIEW_WIDTH / 2 &&
+           x <= CAMERA_X + VIEW_WIDTH / 2;
+}
+
 void player_create() {
     player = malloc(sizeof(ACTOR));
     assert_end(player != NULL, "Could not allocate player memory.");
@@ -54,22 +60,22 @@ void player_place(uint y, uint x) {
     }
 
     player->y = y, player->x = x;
-    DUNGEON[y][x].resident = player;
+    DUNGEON[y][x].actor = player;
     CAMERA_X = player->x, CAMERA_Y = player->y;
     LOOK_X = player->x, LOOK_Y = player->y;
 }
 
 void handle_scroll(DIRECTION dir) {
-    MOVE_DIR(CAMERA_Y, CAMERA_X, &CAMERA_Y, &CAMERA_X, dir, SCROLL_FACTOR);
+    move_dir(CAMERA_Y, CAMERA_X, &CAMERA_Y, &CAMERA_X, dir, SCROLL_FACTOR);
 }
 
 void handle_look(DIRECTION dir) {
-    uint new_y;
-    uint new_x;
+    int new_y;
+    int new_x;
 
-    MOVE_DIR(LOOK_Y, LOOK_X, &new_y, &new_x, dir, 1);
+    move_dir(LOOK_Y, LOOK_X, &new_y, &new_x, dir, 1);
 
-    if (CHK_IN_VIEW(new_y, new_x)) {
+    if (chk_in_view(new_y, new_x)) {
         LOOK_Y = new_y;
         LOOK_X = new_x;
     }
@@ -78,7 +84,7 @@ void handle_look(DIRECTION dir) {
 void handle_inv(DIRECTION dir) {
     uint inv_size;
 
-    MOVE_DIR(INV_POS, 0, &INV_POS, NULL, dir, 1);
+    move_dir(INV_POS, 0, &INV_POS, NULL, dir, 1);
     inv_size = (uint)TCOD_list_size(*(player->inventory));
 
     if (INV_POS == inv_size) {
@@ -90,18 +96,18 @@ void handle_inv(DIRECTION dir) {
     }
 }
 
-int attempt_move(DIRECTION dir) {
+int try_move(DIRECTION dir) {
     ACTOR *a;
-    uint new_y;
-    uint new_x;
+    int new_y;
+    int new_x;
 
-    MOVE_DIR(player->y, player->x, &new_y, &new_x, dir, 1);
+    move_dir(player->y, player->x, &new_y, &new_x, dir, 1);
 
-    if ((a = DUNGEON[new_y][new_x].resident) != NULL) {
+    if ((a = DUNGEON[new_y][new_x].actor) != NULL) {
         actor_attack(player, a);
         return 1;
     } else if (actor_can_move(player, new_y, new_x)) {
-        actor_attempt_move(player, new_y, new_x);
+        actor_try_move(player, new_y, new_x);
         return 1;
     }
 
@@ -115,23 +121,19 @@ int attempt_move(DIRECTION dir) {
 int handle_direction(DIRECTION dir) {
     switch (INPUT_MODE) {
     case INPUT_ACTION:
-        return attempt_move(dir);
-        break;
+        return try_move(dir);
 
     case INPUT_SCROLL:
         handle_scroll(dir);
         return 0;
-        break;
 
     case INPUT_LOOK:
         handle_look(dir);
         return 0;
-        break;
 
     case INPUT_INVENTORY:
         handle_inv(dir);
         return 0;
-        break;
 
     default:
         return 0;
@@ -139,7 +141,7 @@ int handle_direction(DIRECTION dir) {
 }
 
 int handle_input(TCOD_event_t ev, TCOD_keycode_t key, char ch, uint ctrl,
-                 uint m_x, uint m_y) {
+                 int m_x, int m_y) {
     int ret = 0;
     uint i;
 
@@ -168,7 +170,7 @@ int handle_input(TCOD_event_t ev, TCOD_keycode_t key, char ch, uint ctrl,
                ev == TCOD_EVENT_MOUSE_PRESS) {
         m_y += player->y - CON_HEIGHT / 2;
         m_x += player->x - (CON_WIDTH - UI_WIDTH) / 2;
-        if (CHK_IN_VIEW(m_y, m_x)) {
+        if (chk_in_view(m_y, m_x)) {
             if (INPUT_MODE == INPUT_LOOK && LOOK_Y == m_y && LOOK_X == m_x) {
                 INPUT_MODE = INPUT_ACTION;
             } else {

@@ -46,7 +46,7 @@ void priq_push(pri_queue q, void *data, int pri) {
     b[n].pri = pri;
 }
 
-/* remove top item. returns 0 if empty. *pri can be null. */
+/* Remove top item. Returns 0 if empty. *pri can be null. */
 void *priq_pop(pri_queue q, int *pri) {
     void *out;
     q_elem_t *b = q->buf;

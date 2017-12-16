@@ -1,7 +1,7 @@
 #ifndef DEFS_H
 #define DEFS_H
 
-#include "priority.h"
+#include "util/priority.h"
 #include <libtcod.h>
 
 /* Define a spiffy uint type */
@@ -41,19 +41,20 @@ extern const char *GAME_NAME;
 char *PLAYER_NAME;
 
 extern uint DEPTH;
-extern uint MAX_WIDTH; /* full allocated space for dungeon */
-extern uint MAX_HEIGHT;
-extern uint CURRENT_WIDTH, CURRENT_HEIGHT;
-extern uint DUNGEON_X, DUNGEON_Y;
-extern uint VIEW_WIDTH, VIEW_HEIGHT;
-extern uint UI_X, UI_Y;
+/* full allocated space for dungeon */
+extern uint MAX_WIDTH, MAX_HEIGHT;
+extern int CURRENT_WIDTH, CURRENT_HEIGHT;
+extern int DUNGEON_X, DUNGEON_Y;
+extern int VIEW_WIDTH, VIEW_HEIGHT;
+extern int UI_X, UI_Y;
 
 extern unsigned long TURN_COUNT;
 
+extern int CAMERA_X, CAMERA_Y;
+extern int LOOK_X, LOOK_Y;
+
 extern uint INPUT_MODE;
-extern uint CAMERA_X, CAMERA_Y;
-extern uint LOOK_X, LOOK_Y;
-extern uint INV_POS; /* scroll position in inventory */
+extern int INV_POS; /* scroll position in inventory */
 
 extern uint TURN_DELAY_ON;
 extern uint
@@ -77,10 +78,6 @@ extern uint
 #define CHK_IN_BOUNDS(y, x) ((y) < MAX_HEIGHT && (x) < MAX_WIDTH)
 #define CHK_IN_DUNGEON(y, x)                                                   \
     ((y) < DUNGEON_Y + CURRENT_HEIGHT && (x) < DUNGEON_X + CURRENT_WIDTH)
-#define CHK_IN_VIEW(y, x)                                                      \
-    ((y) >= CAMERA_Y - VIEW_HEIGHT / 2 + 1 &&                                  \
-     (y) < CAMERA_Y + VIEW_HEIGHT / 2 && (x) >= CAMERA_X - VIEW_WIDTH / 2 &&   \
-     (x) <= CAMERA_X + VIEW_WIDTH / 2)
 
 /* Define enums */
 enum INPUT_MODES {
@@ -131,7 +128,7 @@ enum ITEM_TYPE {
     ITEM_CONSUMABLE
 };
 
-enum FURN_TYPE { FURN_DOOR, FURN_BRIDGE };
+enum OBJECT_TYPE { OBJECT_DOOR, OBJECT_BRIDGE };
 
 /* Define structs */
 typedef struct ITEM ITEM;
@@ -173,13 +170,13 @@ typedef struct {
 } ACTOR;
 
 typedef struct {
-    enum FURN_TYPE type;
+    enum OBJECT_TYPE type;
     char *name;
     char *art;
     char ch;
     TCOD_color_t col;
-    char FURN_PASSABLE, FURN_FLAMMABLE;
-} FURN;
+    char OBJECT_PASSABLE, OBJECT_FLAMMABLE;
+} OBJECT;
 
 typedef struct {
     enum TILE_TYPE type;
@@ -188,9 +185,9 @@ typedef struct {
     char ch;
     TCOD_color_t col_vis;
     TCOD_color_t col_nonvis;
-    ACTOR *resident; /* actor currently residing in tile */
+    ACTOR *actor; /* actor currently residing in tile */
     TCOD_list_t *stash;
-    FURN *furn;
+    OBJECT *object;
     char EXPLORED, VISIBLE, TRANSPARENT, PASSABLE;
 } DUNGEON_BLOCK;
 

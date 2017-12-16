@@ -2,10 +2,10 @@
 #include "actor.h"
 #include "defs.h"
 #include "player.h"
-#include "priority.h"
 #include "system.h"
 #include "ui.h"
 #include "util.h"
+#include "util/priority.h"
 #include <libtcod.h>
 #include <math.h>
 #include <stdlib.h>
@@ -58,8 +58,8 @@ void calc_fov() {
             TCOD_map_is_in_fov(fov_map, (int)j, (int)i) ? vis_set(j, i)
                                                         : vis_clr(j, i);
 
-            if (CHK_VISIBLE(i, j) && DUNGEON[i][j].resident != NULL) {
-                a = DUNGEON[i][j].resident;
+            if (CHK_VISIBLE(i, j) && DUNGEON[i][j].actor != NULL) {
+                a = DUNGEON[i][j].actor;
 
                 if (a->IS_SEEN == 0) {
                     /* Seeing an actor for the first time */

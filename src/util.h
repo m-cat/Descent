@@ -35,8 +35,7 @@ uint intlen(uint a);
 
 char *name_gen();
 
-void MOVE_DIR(uint y, uint x, uint *new_y, uint *new_x, DIRECTION dir,
-              uint amt);
+void move_dir(int y, int x, int *new_y, int *new_x, DIRECTION dir, uint amt);
 DIRECTION
 random_dir();
 

@@ -16,6 +16,7 @@ int main() {
     int next_turn;
     TCOD_key_t key;
     TCOD_event_t ev;
+    TCOD_event_t request = TCOD_EVENT_KEY | TCOD_EVENT_MOUSE_PRESS;
     TCOD_mouse_t mouse;
 
     /* Initialize game */
@@ -29,21 +30,24 @@ start:
 
     /* Generate dungeon */
     dungeon_gen(DUNGEON_CAVE);
-    dungeon_dump();
+    // dungeon_dump();
 
     calc_fov();
     draw_game();
 
     /* MAIN GAME LOOP */
     do {
-        ev = TCOD_sys_wait_for_event(TCOD_EVENT_KEY | TCOD_EVENT_MOUSE_PRESS,
-                                     &key, &mouse, 0);
-        if (TCOD_console_is_window_closed()) {
-            game_end();
-        }
+        do {
+            if (TCOD_console_is_window_closed()) {
+                game_end();
+            }
 
-        next_turn = handle_input(ev, key.vk, key.c, key.lctrl || key.rctrl,
-                                 mouse.cx, mouse.cy);
+            ev = TCOD_sys_check_for_event(request, &key, &mouse);
+        } while ((ev & request) == 0);
+
+        next_turn =
+            handle_input(ev, key.vk, key.c, key.lctrl == 1 || key.rctrl == 1,
+                         key.shift == 1, mouse.cx, mouse.cy);
         if (next_turn == 1) {
             /* if player used up a turn */
             TURN_COUNT++;

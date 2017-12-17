@@ -8,9 +8,7 @@
 #include <string.h>
 
 ACTOR *actor_create(uint y, uint x, MODEL_ACTOR *model) {
-    ACTOR *a = NULL;
-
-    a = malloc(sizeof(ACTOR));
+    ACTOR *a = malloc(sizeof(ACTOR));
     assert_end(a != NULL, "Could not allocate actor memory.");
 
     /* Initialize data from model */
@@ -52,7 +50,7 @@ ACTOR *actor_create(uint y, uint x, MODEL_ACTOR *model) {
     /* Place actor in dungeon and in turn queue */
     DUNGEON[y][x].actor = a;
     if (a->CAN_MOVE) {
-        priq_push(actor_queue, a, (int)a->spd);
+        priq_push(actor_queue, a, (int) a->spd);
     }
 
     return a;
@@ -75,7 +73,7 @@ void actor_free(ACTOR *a) {
 }
 
 /* TODO: check if actor is allowed to make the move, check CAN_WALK etc */
-int actor_can_move(ACTOR *a, uint y, uint x) {
+int actor_can_move(ACTOR *a, int y, int x) {
     if (y == 0 && x == 0) {
         return 1;
     }
@@ -83,7 +81,7 @@ int actor_can_move(ACTOR *a, uint y, uint x) {
     return CHK_PASSABLE(y, x) && DUNGEON[y][x].actor == NULL;
 }
 
-void actor_try_move(ACTOR *a, uint y, uint x) {
+void actor_try_move(ACTOR *a, int y, int x) {
     /* TODO: add failed movement attempts, i.e. bumping into walls */
     DUNGEON[a->y][a->x].actor = NULL;
     a->y = y;
@@ -96,8 +94,8 @@ void actor_add_item(ACTOR *a, ITEM *item) {
     ITEM_N **iterator;
     ITEM_N *item_n = NULL;
 
-    for (iterator = (ITEM_N **)TCOD_list_begin(*(a->inventory));
-         iterator != (ITEM_N **)TCOD_list_end(*(a->inventory)); iterator++) {
+    for (iterator = (ITEM_N **) TCOD_list_begin(*(a->inventory));
+         iterator != (ITEM_N **) TCOD_list_end(*(a->inventory)); iterator++) {
         /* Item already found in inventory, increment count */
         if (strcmp((*iterator)->item->name, item->name) == 0) {
             (*iterator)->n++;
@@ -112,7 +110,7 @@ void actor_add_item(ACTOR *a, ITEM *item) {
 
     item_n->item = item;
     item_n->n = 1;
-    TCOD_list_push(*(a->inventory), (const void *)item_n);
+    TCOD_list_push(*(a->inventory), (const void *) item_n);
 }
 
 /* Removes the i'th item from the actor's inventory, returning it */
@@ -128,7 +126,7 @@ ITEM *actor_get_item_i(ACTOR *a, int i) {
 
     if (item_n->n == 1) {
         item = item_n->item;
-        TCOD_list_remove(*(a->inventory), (const void *)item_n);
+        TCOD_list_remove(*(a->inventory), (const void *) item_n);
         free(item_n);
     } else {
         item = malloc(sizeof(ITEM));
@@ -188,7 +186,7 @@ void actor_wield(ACTOR *a, int i) {
 }
 
 /*
- * a attacks b ;
+ * a attacks b
  * TODO: Implement combat calculation
  */
 void actor_attack(ACTOR *a, ACTOR *b) {

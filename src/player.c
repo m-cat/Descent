@@ -53,7 +53,7 @@ void player_create() {
     *(player->inventory) = TCOD_list_new();
 }
 
-void player_place(uint y, uint x) {
+void player_place(int y, int x) {
     /* Initialize the player */
     if (player == NULL) {
         player_create();
@@ -82,13 +82,13 @@ void handle_look(DIRECTION dir) {
 }
 
 void handle_inv(DIRECTION dir) {
-    uint inv_size;
+    int inv_size;
 
     move_dir(INV_POS, 0, &INV_POS, NULL, dir, 1);
-    inv_size = (uint)TCOD_list_size(*(player->inventory));
+    inv_size = TCOD_list_size(*(player->inventory));
 
     if (INV_POS == inv_size) {
-        /* INV_POS goes past inventory size */
+        /* INV_POS went past inventory size */
         INV_POS = 0;
     } else if (INV_POS > inv_size) {
         /* INV_POS went below zero */
@@ -140,8 +140,8 @@ int handle_direction(DIRECTION dir) {
     }
 }
 
-int handle_input(TCOD_event_t ev, TCOD_keycode_t key, char ch, uint ctrl,
-                 int m_x, int m_y) {
+int handle_input(TCOD_event_t ev, TCOD_keycode_t key, char ch, int ctrl,
+                 int shift, int m_x, int m_y) {
     int ret = 0;
     uint i;
 
@@ -207,7 +207,7 @@ int handle_input(TCOD_event_t ev, TCOD_keycode_t key, char ch, uint ctrl,
     }
 
     /* Temporarily increment TURN_COUNT so that any messages that are generated
-     * are displayed proper
+     * are displayed properly.
      */
     TURN_COUNT++;
 
@@ -249,7 +249,7 @@ int handle_input(TCOD_event_t ev, TCOD_keycode_t key, char ch, uint ctrl,
         ret = handle_direction(DIR_NW);
         break;
 
-    case TCODK_KP5: /* take up turn doing nothing */
+    case TCODK_KP5: /* Take up turn doing nothing */
         ret = (INPUT_MODE == INPUT_ACTION);
         break;
 
@@ -267,15 +267,28 @@ int handle_input(TCOD_event_t ev, TCOD_keycode_t key, char ch, uint ctrl,
     case TCODK_CHAR:
         if (INPUT_MODE == INPUT_INVENTORY) {
             i = (uint)(ch - 'a');
-            if ((int)i < TCOD_list_size(*(player->inventory))) {
+            if ((int) i < TCOD_list_size(*(player->inventory))) {
                 INV_POS = i;
             }
         }
 
         switch (ch) {
-        case 'g': /* pickup item */
+        /* pickup item */
+        // case 'g':
         case ',':
-            if (INPUT_MODE == INPUT_ACTION) {
+            if (shift) {
+                /* Go upstairs */
+                if (INPUT_MODE == INPUT_ACTION) {
+                    if (DUNGEON[player->y][player->x].type == TILE_STAIRS_UP) {
+                        /* Take the stairs up */
+                        dungeon_next();
+                        ret = 1;
+                    } else {
+                        message_add("You can't go up here", ".");
+                    }
+                }
+            } else if (INPUT_MODE == INPUT_ACTION) {
+                /* Pick up item */
                 if (item_get_top(player->y, player->x) != NULL) {
                     actor_pickup(player, -1);
                     ret = 1;
@@ -284,54 +297,48 @@ int handle_input(TCOD_event_t ev, TCOD_keycode_t key, char ch, uint ctrl,
             break;
 
         case 'd':
-            if (INPUT_MODE == INPUT_INVENTORY) {
-                /* don't drop with 'd' in inventory */
+            if (shift) {
+                /* Drop item */
+                if (INPUT_MODE == INPUT_ACTION) {
+                    if (TCOD_list_size(*(player->inventory)) > 0) {
+                        actor_drop(player, -1);
+                        ret = 1;
+                    }
+                } else if (INPUT_MODE == INPUT_INVENTORY) {
+                    if (TCOD_list_size(*(player->inventory)) > (int) INV_POS) {
+                        actor_drop(player, (int) INV_POS);
+                        ret = 1;
+                    }
+                }
                 break;
-            }
-
-        case 'D': /* drop item */
-            if (INPUT_MODE == INPUT_ACTION) {
-                if (TCOD_list_size(*(player->inventory)) > 0) {
-                    actor_drop(player, -1);
-                    ret = 1;
-                }
-            } else if (INPUT_MODE == INPUT_INVENTORY) {
-                if (TCOD_list_size(*(player->inventory)) > (int)INV_POS) {
-                    actor_drop(player, (int)INV_POS);
-                    ret = 1;
+            } else {
+                if (INPUT_MODE == INPUT_INVENTORY) {
+                    /* don't drop with 'd' in inventory */
+                    break;
                 }
             }
-            break;
 
         case 'w': /* wield item */
             if (INPUT_MODE == INPUT_INVENTORY) {
-                if (TCOD_list_size(*(player->inventory)) > (int)INV_POS) {
-                    actor_wield(player, (int)INV_POS);
+                if (TCOD_list_size(*(player->inventory)) > (int) INV_POS) {
+                    actor_wield(player, (int) INV_POS);
                     ret = 1;
                 }
             }
             break;
 
-        case '<':
-            if (INPUT_MODE == INPUT_ACTION) {
-                if (DUNGEON[player->y][player->x].type == TILE_STAIRS_UP) {
-                    /* Take the stairs up */
-                    dungeon_next();
-                    ret = 1;
-                } else {
-                    message_add("You can't go up here", ".");
-                }
-            }
-            break;
-
-        case '>':
-            if (INPUT_MODE == INPUT_ACTION) {
-                if (DUNGEON[player->y][player->x].type == TILE_STAIRS_DOWN) {
-                    /* Take the stairs down */
-                    dungeon_next();
-                    ret = 1;
-                } else {
-                    message_add("You can't go down here", ".");
+        case '.':
+            if (shift) {
+                /* Go downstairs */
+                if (INPUT_MODE == INPUT_ACTION) {
+                    if (DUNGEON[player->y][player->x].type ==
+                        TILE_STAIRS_DOWN) {
+                        /* Take the stairs down */
+                        dungeon_next();
+                        ret = 1;
+                    } else {
+                        message_add("You can't go down here", ".");
+                    }
                 }
             }
             break;

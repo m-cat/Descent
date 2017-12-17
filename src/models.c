@@ -94,6 +94,8 @@ void init_block_models() {
     model_floor.ch = '.';
     model_floor.col_vis = (TCOD_color_t){158, 134, 100};
     model_floor.col_nonvis = (TCOD_color_t){63, 50, 31};
+    model_floor.TRANSPARENT = 1;
+    model_floor.PASSABLE = 1;
 
     /* Initialize downward staircase model */
     model_staircase_down = DEFAULT_BLOCK; /* set defaults */
@@ -103,6 +105,8 @@ void init_block_models() {
     model_staircase_down.ch = '>';
     model_staircase_down.col_vis = TCOD_white;
     model_staircase_down.col_nonvis = TCOD_white;
+    model_staircase_down.TRANSPARENT = 1;
+    model_staircase_down.PASSABLE = 1;
 
     /* Initialize upward staircase model */
     model_staircase_up = DEFAULT_BLOCK; /* set defaults */
@@ -112,6 +116,8 @@ void init_block_models() {
     model_staircase_up.ch = '<';
     model_staircase_up.col_vis = TCOD_white;
     model_staircase_up.col_nonvis = TCOD_white;
+    model_staircase_up.TRANSPARENT = 1;
+    model_staircase_up.PASSABLE = 1;
 
     /* Initialize water model */
     model_water = DEFAULT_BLOCK; /* set defaults */
@@ -121,6 +127,7 @@ void init_block_models() {
     model_water.ch = '~';
     model_water.col_vis = TCOD_blue;
     model_water.col_nonvis = TCOD_blue;
+    model_water.TRANSPARENT = 1;
 }
 
 void init_models() {

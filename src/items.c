@@ -46,7 +46,7 @@ ITEM *item_get_top(uint y, uint x) {
         return NULL;
     }
 
-    item_n = (ITEM_N *)TCOD_list_peek(*(DUNGEON[y][x].stash));
+    item_n = (ITEM_N *) TCOD_list_peek(*(DUNGEON[y][x].stash));
     return item_n->item;
 }
 
@@ -56,9 +56,9 @@ ITEM *item_pickup(uint y, uint x, int i) {
     ITEM_N *item_n;
 
     if (i == -1) {
-        item_n = (ITEM_N *)TCOD_list_peek(*(DUNGEON[y][x].stash));
+        item_n = (ITEM_N *) TCOD_list_peek(*(DUNGEON[y][x].stash));
     } else {
-        item_n = (ITEM_N *)TCOD_list_get(*(DUNGEON[y][x].stash), i);
+        item_n = (ITEM_N *) TCOD_list_get(*(DUNGEON[y][x].stash), i);
     }
 
     item = malloc(sizeof(ITEM));
@@ -66,7 +66,7 @@ ITEM *item_pickup(uint y, uint x, int i) {
     if (item_n->n > 1) {
         item_n->n--;
     } else {
-        TCOD_list_remove(*(DUNGEON[y][x].stash), (const void *)item_n);
+        TCOD_list_remove(*(DUNGEON[y][x].stash), (const void *) item_n);
         item_free(item_n->item);
         free(item_n);
     }
@@ -84,8 +84,8 @@ void item_drop(uint y, uint x, ITEM *item) {
         *stash = TCOD_list_new();
     } else {
         /* Search for preexisting stack of the same item */
-        for (iterator = (ITEM_N **)TCOD_list_begin(*stash);
-             iterator != (ITEM_N **)TCOD_list_end(*stash); iterator++) {
+        for (iterator = (ITEM_N **) TCOD_list_begin(*stash);
+             iterator != (ITEM_N **) TCOD_list_end(*stash); iterator++) {
             if (strcmp((*iterator)->item->name, item->name) == 0) {
                 (*iterator)->n++;
                 item_free(item);
@@ -98,7 +98,7 @@ void item_drop(uint y, uint x, ITEM *item) {
     item_n = malloc(sizeof(ITEM_N));
     item_n->item = item;
     item_n->n = 1;
-    TCOD_list_push(*stash, (const void *)item_n);
+    TCOD_list_push(*stash, (const void *) item_n);
 
     DUNGEON[y][x].stash = stash;
 }

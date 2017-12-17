@@ -28,7 +28,6 @@ DUNGEON_BLOCK *block_create(uint y, uint x, MODEL_BLOCK *model) {
     assert_end(block != NULL, "Could not allocate block memory.");
 
     block->type = model->type;
-    // printf("%d\n", block->type);
     /* usually don't need to duplicate the name strings */
     block->name = model->name;
     block->art = model->art;
@@ -88,7 +87,7 @@ void clear_block(uint y, uint x) {
 
 /* Dump a textual representation of the dungeon to the console. */
 void dungeon_dump() {
-    uint i, j;
+    int i, j;
 
     for (i = 0; i < MAX_HEIGHT; i++) {
         printf("Row %d: ", i);
@@ -102,140 +101,128 @@ void dungeon_dump() {
 
 /* Clear all data from every dungeon block. Set the dungeon to be all walls. */
 void dungeon_clear() {
-    uint i;
-    uint j;
+    int i, j;
     int pri;
     ACTOR *a;
 
     /* Clear all blocks */
-    printf("%d %d\n", MAX_HEIGHT, MAX_WIDTH);
     for (i = 0; i < MAX_HEIGHT; i++) {
         for (j = 0; j < MAX_WIDTH; j++) {
             clear_block(i, j);
             block_create(i, j, &model_wall);
-            DUNGEON_BLOCK *block = &DUNGEON[i][j];
-            printf("%d ", block->type);
         }
-        printf("\n");
     }
-    printf("a\n");
 
     /* Delete all actors */
     while ((a = priq_pop(actor_queue, &pri))) {
         /* Take out actor from the queue and delete it */
         actor_free(a);
     }
-    printf("b\n");
 
     /* Delete the fov map */
     TCOD_map_delete(fov_map);
-    printf("c\n");
 }
 
-// /* Resizes a dungeon by amount resize_x, resize_y. If shift_left or shift_up
-// are
-//  * true, the dungeon will be resized in the negative direction. That is, all
-//  * elements will be shifted over to simulate a negatively-expanded grid.
-//  */
-// void dungeon_resize(uint resize_y, uint resize_x, uint shift_up,
-//                     uint shift_left) {
-//     uint i;
-//     uint j;
-//     uint prev_height = MAX_HEIGHT;
-//     uint prev_width = MAX_WIDTH;
-//     DUNGEON_BLOCK *test_ptr;
+/* Resizes a dungeon by amount resize_x, resize_y. If shift_left or shift_up
+are
+ * true, the dungeon will be resized in the negative direction. That is, all
+ * elements will be shifted over to simulate a negatively-expanded grid.
+ */
+void dungeon_resize(uint resize_y, uint resize_x, uint shift_up,
+                    uint shift_left) {
+    // TODO: Bug in this function, one row is left with garbage values.
+    int i, j;
+    uint prev_height = MAX_HEIGHT;
+    uint prev_width = MAX_WIDTH;
+    DUNGEON_BLOCK *test_ptr;
 
-//     if (shift_up) {
-//         DUNGEON_Y += resize_y;
-//     }
+    if (shift_up) {
+        DUNGEON_Y += resize_y;
+    }
 
-//     if (shift_left) {
-//         DUNGEON_X += resize_x;
-//     }
+    if (shift_left) {
+        DUNGEON_X += resize_x;
+    }
 
-//     if (resize_y) {
-//         MAX_HEIGHT += resize_y;
-//         test_ptr = realloc(DUNGEON, MAX_HEIGHT * sizeof(DUNGEON_BLOCK));
-//         if (test_ptr == NULL) {
-//             free(DUNGEON);
-//             error_end("Could not allocate memory");
-//         }
-//         *DUNGEON = test_ptr;
+    if (resize_y) {
+        MAX_HEIGHT += resize_y;
+        test_ptr = realloc(DUNGEON, MAX_HEIGHT * sizeof(DUNGEON_BLOCK));
+        if (test_ptr == NULL) {
+            free(DUNGEON);
+            error_end("Could not allocate memory");
+        }
+        *DUNGEON = test_ptr;
 
-//         /* If resize_y < 0, shift over all the rows */
-//         if (shift_up) {
-//             for (i = prev_height; i > 0; i--) {
-//                 DUNGEON[i - 1 + resize_y] = DUNGEON[i - 1];
-//             }
+        /* If resize_y < 0, shift over all the rows */
+        if (shift_up) {
+            for (i = prev_height; i > 0; i--) {
+                DUNGEON[i - 1 + resize_y] = DUNGEON[i - 1];
+            }
 
-//             for (i = resize_y; i > 0; i--) {
-//                 DUNGEON[i - 1] =
-//                     calloc((size_t)MAX_WIDTH, sizeof(DUNGEON_BLOCK));
-//                 for (j = 0; j < MAX_WIDTH; j++) {
-//                     block_create(i - 1, j, &model_wall);
-//                 }
-//             }
-//         } else {
-//             for (i = prev_height; i < MAX_HEIGHT; i++) {
-//                 DUNGEON[i] = calloc(MAX_WIDTH, sizeof(DUNGEON_BLOCK));
-//                 for (j = 0; j < MAX_WIDTH; j++) {
-//                     block_create(i, j, &model_wall);
-//                 }
-//             }
-//         }
-//     }
+            for (i = resize_y; i > 0; i--) {
+                DUNGEON[i - 1] =
+                    calloc((size_t) MAX_WIDTH, sizeof(DUNGEON_BLOCK));
+                for (j = 0; j < MAX_WIDTH; j++) {
+                    block_create(i - 1, j, &model_wall);
+                }
+            }
+        } else {
+            for (i = prev_height; i < MAX_HEIGHT; i++) {
+                DUNGEON[i] = calloc(MAX_WIDTH, sizeof(DUNGEON_BLOCK));
+                for (j = 0; j < MAX_WIDTH; j++) {
+                    block_create(i, j, &model_wall);
+                }
+            }
+        }
+    }
 
-//     if (resize_x) {
-//         MAX_WIDTH += resize_x;
-//         for (i = 0; i < MAX_HEIGHT; i++) {
-//             DUNGEON[i] = realloc(DUNGEON[i], MAX_WIDTH *
-//             sizeof(DUNGEON_BLOCK)); if (shift_left) {
-//                 /* Shift over all the columns */
-//                 for (j = prev_width; j > 0; j--) {
-//                     DUNGEON[i][j - 1 + resize_x] = DUNGEON[i][j - 1];
-//                 }
+    if (resize_x) {
+        MAX_WIDTH += resize_x;
+        for (i = 0; i < MAX_HEIGHT; i++) {
+            DUNGEON[i] = realloc(DUNGEON[i], MAX_WIDTH * sizeof(DUNGEON_BLOCK));
+            if (shift_left) {
+                /* Shift over all the columns */
+                for (j = prev_width; j > 0; j--) {
+                    DUNGEON[i][j - 1 + resize_x] = DUNGEON[i][j - 1];
+                }
 
-//                 for (j = resize_x; j > 0; j--) {
-//                     /* Since this dungeon block has the old values, we need
-//                     to
-//                      * prevent clear_block() from calling free() on an
-//                      existing
-//                      * object. */
-//                     DUNGEON[i][j].object = NULL;
-//                     DUNGEON[i][j].stash = NULL; /* Same deal here. */
-//                     clear_block(i, j - 1);
-//                     block_create(i, j - 1, &model_wall);
-//                 }
-//             } else {
-//                 for (j = prev_width; j < MAX_WIDTH; j++) {
-//                     /* This dungeon block will have garbage values; we need
-//                     to
-//                      * prevent clear_block() from calling free() on them. */
-//                     DUNGEON[i][j].object = NULL;
-//                     DUNGEON[i][j].stash = NULL;
-//                     clear_block(i, j);
-//                     block_create(i, j, &model_wall);
-//                 }
-//             }
-//         }
-//     }
-// }
+                for (j = resize_x; j > 0; j--) {
+                    /* Since this dungeon block has the old values, we need to
+                     * prevent clear_block() from calling free() on an existing
+                     * object. */
+                    DUNGEON[i][j].object = NULL;
+                    DUNGEON[i][j].stash = NULL; /* Same deal here. */
+                    clear_block(i, j - 1);
+                    block_create(i, j - 1, &model_wall);
+                }
+            } else {
+                for (j = prev_width; j < MAX_WIDTH; j++) {
+                    /* This dungeon block will have garbage values; we need to
+                     * prevent clear_block() from calling free() on them. */
+                    DUNGEON[i][j].object = NULL;
+                    DUNGEON[i][j].stash = NULL;
+                    clear_block(i, j);
+                    block_create(i, j, &model_wall);
+                }
+            }
+        }
+    }
+}
 
 void dungeon_next() {
     DEPTH++;
     dungeon_gen(DUNGEON_CAVE);
-    message_add(string_create(1, "You descend down the stairs"), "!");
+    message_add(string_create(1, "You descend down the stairs"), ".");
 }
 
 void dungeon_set_fov() {
-    uint i;
-    uint j;
+    int i, j;
 
-    fov_map = TCOD_map_new((int)MAX_WIDTH, (int)MAX_HEIGHT);
+    fov_map = TCOD_map_new(MAX_WIDTH, MAX_HEIGHT);
     for (i = DUNGEON_Y; i < DUNGEON_Y + CURRENT_HEIGHT; i++) {
         for (j = DUNGEON_X; j < DUNGEON_X + CURRENT_WIDTH; j++) {
-            TCOD_map_set_properties(fov_map, (int)j, (int)i,
-                                    CHK_TRANSPARENT(i, j), CHK_PASSABLE(i, j));
+            TCOD_map_set_properties(fov_map, j, i, CHK_TRANSPARENT(i, j),
+                                    CHK_PASSABLE(i, j));
         }
     }
 }
@@ -306,16 +293,14 @@ void dungeon_gen_maze(uint x, uint y, uint maze_x, uint maze_y, uint width,
 
 void dungeon_gen_cave(uint goal) {
     uint i = 1;
-    uint x = MAX_WIDTH / 2;
-    uint y = MAX_HEIGHT / 2;
+    int x = MAX_WIDTH / 2;
+    int y = MAX_HEIGHT / 2;
     uint resize_x, resize_y;
     uint shift_left, shift_up;
 
     CURRENT_HEIGHT = CURRENT_WIDTH = 3;
     DUNGEON_X = x - 1, DUNGEON_Y = y - 1;
-    printf("%d\n", DUNGEON_X);
     block_create(y, x, &model_staircase_down);
-    printf("%d\n", DUNGEON_X);
 
     while (i < goal) {
         switch (rand_unsigned_int(DIR_N, DIR_W)) {
@@ -362,17 +347,19 @@ void dungeon_gen_cave(uint goal) {
              */
             shift_left = (DUNGEON_X <= 1);
             shift_up = (DUNGEON_Y <= 1);
-            if ((DUNGEON_X + CURRENT_WIDTH >= MAX_WIDTH - 1) || shift_left) {
+            if ((DUNGEON_X + CURRENT_WIDTH >= (int) MAX_WIDTH - 1) ||
+                shift_left) {
                 resize_x = 128;
             }
 
-            if ((DUNGEON_Y + CURRENT_HEIGHT >= MAX_HEIGHT - 1) || shift_up) {
+            if ((DUNGEON_Y + CURRENT_HEIGHT >= (int) MAX_HEIGHT - 1) ||
+                shift_up) {
                 resize_y = 128;
             }
 
             if (resize_x || resize_y) {
                 /* expand dungeon size in memory */
-                // dungeon_resize(resize_y, resize_x, shift_up, shift_left);
+                dungeon_resize(resize_y, resize_x, shift_up, shift_left);
                 if (shift_up) {
                     y += resize_y;
                 }
@@ -386,13 +373,10 @@ void dungeon_gen_cave(uint goal) {
         }
     }
 
-    dungeon_dump();
+    // dungeon_dump();
 
-    printf("%d\n", 2);
     block_create(y, x, &model_staircase_up);
-    printf("%d\n", 2);
     player_place(y, x);
-    printf("%d\n", 2);
 }
 
 typedef struct {
@@ -414,7 +398,7 @@ void dungeon_gen(enum DUNGEON_TYPE type) {
         break;
 
     case DUNGEON_CAVE:
-        dungeon_gen_cave(200);
+        dungeon_gen_cave(30);
         break;
 
     case DUNGEON_REGULAR:
@@ -422,13 +406,9 @@ void dungeon_gen(enum DUNGEON_TYPE type) {
         break;
     }
 
-    printf("oh no\n");
     dungeon_place_items();
-    printf("%d\n", 4);
     dungeon_place_enemies();
-    printf("%d\n", 4);
     dungeon_set_fov();
-    printf("%d\n", 4);
 }
 
 /* Place items */

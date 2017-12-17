@@ -46,35 +46,37 @@ void error_end(const char *msg) {
 
 /* Adds a string to the message list. `str` must have been malloc'd. */
 void message_add(char *str, char *punc) {
-    char *first = str;
+    char *first;
     char *add; /* additional lines */
     uint cutoff;
+    int max_len = UI_WIDTH - 3;
+    Msg *msg = malloc(sizeof(Msg));
 
-#define MAX_LEN (UI_WIDTH - 3)
-    while (strlen(str) >= MAX_LEN) {
-        cutoff = MAX_LEN;
-        while (str[cutoff] != ' ') {
+    while (strlen(str) >= (size_t) max_len) {
+        cutoff = max_len;
+        while (str[cutoff] != ' ' && cutoff > 0) {
             cutoff--;
         }
 
         add = malloc(cutoff + 1);
         strncpy(add, str, cutoff);
         add[cutoff] = 0;
-        TCOD_list_push(message_list, (const void *)add);
-        TCOD_list_push(message_turn_list, (const void *)TURN_COUNT);
+        msg->msg = add;
+        msg->turn = TURN_COUNT;
+        TCOD_list_push(MESSAGE_LIST, (const void *) msg);
         str += cutoff;
         str[0] = ' ';
     }
 
-    TCOD_list_push(message_list, (const void *)string_create(2, str, punc));
-    TCOD_list_push(message_turn_list, (const void *)TURN_COUNT);
-    free(first);
+    msg->msg = string_create(2, str, punc);
+    msg->turn = TURN_COUNT;
+    TCOD_list_push(MESSAGE_LIST, (const void *) msg);
+    free(str);
 
-    while (TCOD_list_size(message_list) > MESSAGE_LIST_LEN) {
-        first = TCOD_list_get(message_list, 0);
-        TCOD_list_remove(message_list, first);
+    /* Remove earlier messages */
+    while (TCOD_list_size(MESSAGE_LIST) > MESSAGE_LIST_LEN) {
+        first = TCOD_list_get(MESSAGE_LIST, 0);
+        TCOD_list_remove(MESSAGE_LIST, first);
         free(first);
-        TCOD_list_remove(message_turn_list,
-                         TCOD_list_get(message_turn_list, 0));
     }
 }

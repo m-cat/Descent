@@ -130,7 +130,7 @@ int rand_int(int a, int b) {
 }
 
 uint rand_unsigned_int(uint a, uint b) {
-    return (uint)TCOD_random_get_int(NULL, (int)MIN(a, b), (int)MAX(a, b));
+    return (uint) TCOD_random_get_int(NULL, (int) MIN(a, b), (int) MAX(a, b));
 }
 
 double rand_float(double a, double b) {

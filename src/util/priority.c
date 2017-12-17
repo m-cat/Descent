@@ -15,7 +15,7 @@ pri_queue priq_new(int size) {
         size = 4;
     }
 
-    q->buf = malloc(sizeof(q_elem_t) * (size_t)size);
+    q->buf = malloc(sizeof(q_elem_t) * (size_t) size);
     q->alloc = size;
     q->n = 1;
 
@@ -29,7 +29,7 @@ void priq_push(pri_queue q, void *data, int pri) {
 
     if (q->n >= q->alloc) {
         q->alloc *= 2;
-        b = q->buf = realloc(q->buf, sizeof(q_elem_t) * (size_t)q->alloc);
+        b = q->buf = realloc(q->buf, sizeof(q_elem_t) * (size_t) q->alloc);
     } else {
         b = q->buf;
     }

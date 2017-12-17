@@ -42,13 +42,13 @@ char *PLAYER_NAME;
 
 extern uint DEPTH;
 /* full allocated space for dungeon */
-extern uint MAX_WIDTH, MAX_HEIGHT;
+extern int MAX_WIDTH, MAX_HEIGHT;
 extern int CURRENT_WIDTH, CURRENT_HEIGHT;
 extern int DUNGEON_X, DUNGEON_Y;
 extern int VIEW_WIDTH, VIEW_HEIGHT;
 extern int UI_X, UI_Y;
 
-extern unsigned long TURN_COUNT;
+extern long TURN_COUNT;
 
 extern int CAMERA_X, CAMERA_Y;
 extern int LOOK_X, LOOK_Y;
@@ -57,8 +57,8 @@ extern uint INPUT_MODE;
 extern int INV_POS; /* scroll position in inventory */
 
 extern uint TURN_DELAY_ON;
-extern uint
-    SCROLL_FACTOR; /* speed of scrolling - how many tiles to move at once */
+/* speed of scrolling - how many tiles to move at once */
+extern uint SCROLL_FACTOR;
 
 /* Define macros */
 #define SET_EXPLORED(y, x, n) (DUNGEON[y][x].EXPLORED = (n))
@@ -66,18 +66,11 @@ extern uint
 #define SET_TRANSPARENT(y, x, n) (DUNGEON[y][x].TRANSPARENT = (n))
 #define SET_PASSABLE(y, x, n) (DUNGEON[y][x].PASSABLE = (n))
 #define CHK_IN_BOUNDS(y, x)                                                    \
-    ((y) < MAX_HEIGHT &&                                                       \
-     (x) < MAX_WIDTH) /* don't check >= 0 because we use uints */
-#define CHK_IN_DUNGEON(y, x)                                                   \
-    ((y) < DUNGEON_Y + CURRENT_HEIGHT && (x) < DUNGEON_X + CURRENT_WIDTH)
-#define CHK_EXPLORED(y, x) (CHK_IN_BOUNDS((y), (x)) && DUNGEON[y][x].EXPLORED)
-#define CHK_VISIBLE(y, x) (CHK_IN_BOUNDS((y), (x)) && DUNGEON[y][x].VISIBLE)
-#define CHK_TRANSPARENT(y, x)                                                  \
-    (CHK_IN_BOUNDS((y), (x)) && DUNGEON[y][x].TRANSPARENT)
-#define CHK_PASSABLE(y, x) (CHK_IN_BOUNDS((y), (x)) && DUNGEON[y][x].PASSABLE)
-#define CHK_IN_BOUNDS(y, x) ((y) < MAX_HEIGHT && (x) < MAX_WIDTH)
-#define CHK_IN_DUNGEON(y, x)                                                   \
-    ((y) < DUNGEON_Y + CURRENT_HEIGHT && (x) < DUNGEON_X + CURRENT_WIDTH)
+    ((y) > 0 && (x) > 0 && (y) < MAX_HEIGHT && (x) < MAX_WIDTH)
+#define CHK_EXPLORED(y, x) (DUNGEON[y][x].EXPLORED)
+#define CHK_VISIBLE(y, x) (DUNGEON[y][x].VISIBLE)
+#define CHK_TRANSPARENT(y, x) (DUNGEON[y][x].TRANSPARENT)
+#define CHK_PASSABLE(y, x) (DUNGEON[y][x].PASSABLE)
 
 /* Define enums */
 enum INPUT_MODES {
@@ -153,7 +146,7 @@ typedef struct {
     char ch;    /* display character */
     enum GENDER gender;
     TCOD_color_t col;
-    uint x, y; /* position */
+    int x, y; /* position */
     uint level, exp;
     uint hp_max, hp_cur;
     uint mp_max, mp_cur;
@@ -191,13 +184,17 @@ typedef struct {
     char EXPLORED, VISIBLE, TRANSPARENT, PASSABLE;
 } DUNGEON_BLOCK;
 
+typedef struct {
+    char *msg;
+    long turn;
+} Msg;
+
 /* Define global data structures */
 DUNGEON_BLOCK **DUNGEON;
 DUNGEON_BLOCK block_wall;
 DUNGEON_BLOCK block_floor;
 TCOD_map_t fov_map;
 
-TCOD_list_t message_list;
-TCOD_list_t message_turn_list;
+TCOD_list_t MESSAGE_LIST;
 pri_queue actor_queue, temp_queue;
 #endif /* DEFS_H */

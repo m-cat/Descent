@@ -98,7 +98,7 @@ void draw_notify() {
 
 void draw_view() {
     int i, j;
-    uint drawi, drawj;
+    int drawi, drawj;
     DUNGEON_BLOCK *block;
     ACTOR *a;
     OBJECT *object;
@@ -116,7 +116,7 @@ void draw_view() {
             is_look = (i == LOOK_Y && j == LOOK_X && INPUT_MODE == INPUT_LOOK);
 
             /* Check if not explored AND if in bounds of dungeon */
-            if (!CHK_EXPLORED(i, j)) {
+            if (!(CHK_IN_BOUNDS(i, j) && CHK_EXPLORED(i, j))) {
                 if (is_look) {
                     cprint(drawi, drawj, TCOD_black, TCOD_amber, " ");
                 } else {
@@ -175,10 +175,10 @@ void draw_view() {
 
             /* Set square being examined to yellow and black */
             if (is_look) {
-                TCOD_console_set_char_foreground(NULL, (int)drawj, (int)drawi,
+                TCOD_console_set_char_foreground(NULL, drawj, drawi,
                                                  TCOD_black);
-                TCOD_console_set_char_background(NULL, (int)drawj, (int)drawi,
-                                                 TCOD_amber, TCOD_BKGND_SET);
+                TCOD_console_set_char_background(NULL, drawj, drawi, TCOD_amber,
+                                                 TCOD_BKGND_SET);
             }
         }
     }
@@ -202,7 +202,7 @@ void draw_inventory() {
                   "%cw%cield | %cW%cear", TCOD_COLCTRL_1, TCOD_COLCTRL_STOP,
                   TCOD_COLCTRL_1, TCOD_COLCTRL_STOP);
 
-    inv_size = (uint)TCOD_list_size(*(player->inventory));
+    inv_size = (uint) TCOD_list_size(*(player->inventory));
     if (INV_POS >= inv_size) {
         if (inv_size == 0) {
             INV_POS = 0;
@@ -211,8 +211,8 @@ void draw_inventory() {
         }
     }
 
-    for (iterator = (ITEM_N **)TCOD_list_begin(*(player->inventory)), i = 0;
-         iterator != (ITEM_N **)TCOD_list_end(*(player->inventory));
+    for (iterator = (ITEM_N **) TCOD_list_begin(*(player->inventory)), i = 0;
+         iterator != (ITEM_N **) TCOD_list_end(*(player->inventory));
          iterator++, i++) {
         subject = subject_form((*iterator)->item->art, (*iterator)->n,
                                (*iterator)->item->name);
@@ -235,10 +235,9 @@ void draw_equip() {
 }
 
 void draw_ui() {
-    uint i;
-    uint j;
-    char **iterator;
-    uint *iterator2;
+    int i, j;
+    Msg *msg;
+    Msg **msg_iter;
 
     // TCOD_color_t c;
     TCOD_console_set_default_foreground(NULL, TCOD_white);
@@ -269,15 +268,15 @@ void draw_ui() {
         cprint_center(1, UI_X + UI_WIDTH / 2 + 1, TCOD_white, TCOD_black,
                       "Latest Messages");
 
-        for (iterator = (char **)TCOD_list_end(message_list) - 1,
-            i = CON_HEIGHT - 2,
-            iterator2 = (uint *)TCOD_list_end(message_turn_list) - 1;
-             i > 2 && iterator != (char **)TCOD_list_begin(message_list) - 1;
-             iterator--, iterator2--, i--) {
-            if (*iterator2 >= TURN_COUNT) {
-                cprint(i, UI_X + 2, TCOD_white, TCOD_black, "%s", *iterator);
+        for (msg_iter = (Msg **) TCOD_list_end(MESSAGE_LIST) - 1,
+            i = CON_HEIGHT - 2;
+             i > 2 && msg_iter != (Msg **) TCOD_list_begin(MESSAGE_LIST) - 1;
+             msg_iter--, i--) {
+            msg = *msg_iter;
+            if (msg->turn >= TURN_COUNT) {
+                cprint(i, UI_X + 2, TCOD_white, TCOD_black, "%s", msg->msg);
             } else {
-                cprint(i, UI_X + 2, TCOD_grey, TCOD_black, "%s", *iterator);
+                cprint(i, UI_X + 2, TCOD_grey, TCOD_black, "%s", msg->msg);
             }
         }
         break;
@@ -299,8 +298,10 @@ void draw_ui() {
                player->exp, player->level * 100);
 
         /* Draw depth and turn */
-        cprint_right(UI_Y + 3, CON_WIDTH - 3, TCOD_white, TCOD_black,
+        cprint_right(UI_Y + 3, CON_WIDTH - 5, TCOD_white, TCOD_black,
                      "Depth: %d", DEPTH);
+        cprint_right(UI_Y + 4, CON_WIDTH - 5, TCOD_white, TCOD_black,
+                     "Turn: %d", TURN_COUNT);
 
         /* Draw hp and mp */
         cprint(UI_Y + OFFSET_HP_Y, UI_X + OFFSET_HP_X, TCOD_white, TCOD_black,
@@ -326,22 +327,22 @@ void draw_ui() {
             cprint(CON_HEIGHT - OFFSET_MSG, j, TCOD_white, TCOD_black, "~");
         }
 
-        for (iterator = (char **)TCOD_list_end(message_list) - 1,
-            i = CON_HEIGHT - 2,
-            iterator2 = (uint *)TCOD_list_end(message_turn_list) - 1;
+        for (msg_iter = (Msg **) TCOD_list_end(MESSAGE_LIST) - 1,
+            i = CON_HEIGHT - 2;
              i > CON_HEIGHT - OFFSET_MSG + 1 &&
-             iterator != (char **)TCOD_list_begin(message_list) - 1;
-             iterator--, iterator2--, i--) {
-            if (*iterator2 >= TURN_COUNT) {
-                cprint(i, UI_X + 2, TCOD_white, TCOD_black, "%s", *iterator);
+             msg_iter != (Msg **) TCOD_list_begin(MESSAGE_LIST) - 1;
+             msg_iter--, i--) {
+            msg = *msg_iter;
+            if (msg->turn >= TURN_COUNT) {
+                cprint(i, UI_X + 2, TCOD_white, TCOD_black, "%s", msg->msg);
             } else {
-                cprint(i, UI_X + 2, TCOD_grey, TCOD_black, "%s", *iterator);
+                cprint(i, UI_X + 2, TCOD_grey, TCOD_black, "%s", msg->msg);
             }
         }
 
         if (i == CON_HEIGHT - OFFSET_MSG + 1 &&
-            iterator != (char **)TCOD_list_begin(message_list) - 1 &&
-            *iterator2 >= TURN_COUNT) {
+            msg_iter != (Msg **) TCOD_list_begin(MESSAGE_LIST) - 1 &&
+            (*msg_iter)->turn >= TURN_COUNT) {
             cprint_right(i, CON_WIDTH - 2, TCOD_green, TCOD_black, "[more]");
         }
         break;

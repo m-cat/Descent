@@ -20,7 +20,7 @@ ERRORS  = errors
 LINTS   = lints
 OUTPUT  = $(NAME)
 
-CF_OPTS = -style="{BasedOnStyle: llvm, IndentWidth: 4, DerivePointerAlignment: false, PointerAlignment: Right}"
+CF_OPTS = -style="{BasedOnStyle: llvm, IndentWidth: 4, DerivePointerAlignment: false, PointerAlignment: Right, SpaceAfterCStyleCast: true}"
 DEBUG   = -m32 -g -fno-inline -fno-omit-frame-pointer
 LIBS    = -Iinclude -ltcod
 OC_OPTS = -enable-clang-static-analyzer -enable-global-analysis -no-analytics -o $(LINTS)
